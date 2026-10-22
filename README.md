@@ -17,8 +17,9 @@ Single file. No build step. No backend. No tracking.
 - **Sector split** — commercial enterprise versus academic and research institutions.
 - **Channel attribution** — renewals, expansion, web and social, outbound/SDR, and partners, ranked by won revenue.
 - **Full funnel** — leads → quotations → closed deals, with lead-to-quote, quote-to-win, pipeline capture, and the value of quotations that never converted.
-- **Pipeline ledger** — every one of the 1,387 synthetic records: search, sort, group by vintage / sector / channel / year / customer, and switch between all records, unquoted leads, lost quotes, and won deals.
+- **Pipeline ledger** — every one of the 1,387 synthetic records: search, sort, group by vintage / sector / channel / year / customer, and switch between all records, unquoted leads, in-flight quotes, lost quotes, and won deals.
 - **Top customers** — the five largest accounts in the current view, with concentration context.
+- **Plain-language definitions** — every headline KPI carries a one-line explanation under the number, so a non-specialist can read the dashboard without a glossary.
 - **Shareable state** — year, multiplier, filters, tab, grouping, and search are serialised into the URL hash; **Copy link** reproduces the exact view.
 
 ## Interactions
@@ -29,11 +30,12 @@ Single file. No build step. No backend. No tracking.
 | Click a bar in the trend chart | Same as selecting that year |
 | Click a doughnut slice or a facet row | Toggles that segment as a global filter |
 | Drag the multiplier slider, type a value, or use −/+ / presets | Recalculates every target, KPI, and attainment figure |
-| Ledger tabs | All records / unquoted leads / lost quotes / won deals |
+| Ledger tabs | All records / unquoted leads / in-flight quotes / lost quotes / won deals |
 | Group-by selector | Aggregated subtotals with share, quote count, win rate, average deal |
 | Search | Filters the ledger by customer, channel, vintage, or sector |
 | Copy link | Copies the current view (filters + scenario) to the clipboard |
 | Reset | Restores the default scenario |
+| Click any control | Dims the other panels so the active one stands out; click it again to restore everything |
 
 All figures are in USD. FY2026 is year-to-date (the page is dated October 2026).
 
@@ -45,7 +47,7 @@ All figures are in USD. FY2026 is year-to-date (the page is dated October 2026).
 - **Pipeline capture** = won revenue ÷ estimated lead value.
 - **Unconverted quotes** = quoted value minus won value (quotations that never closed).
 
-The headline numbers are benchmarked against directional B2B figures (win rate 21%, lead-to-close 13%, mid-market ACV $125k, 84-day sales cycle, 3–5x pipeline coverage): each benchmark tile compares our value, states the source benchmark, and links to the underlying view when clicked.
+The headline numbers are benchmarked against directional B2B figures (win rate 21%, lead-to-close 13%, mid-market ACV $125k, 84-day sales cycle, open-pipeline coverage 3–5x) and shown as static tiles for reading — they carry no click actions.
 
 All records are generated at load by a deterministic PRNG (`mulberry32`, fixed seed) from a compact annual plan. Nothing is fetched. The plan fixes each year's actual revenue, lead/quote/win counts, channel weights, vintage mix, new-logo rate, and win-back rate; individual records (account, sector, channel, vintage, lead value, quote value, won value, sales-cycle days, lead age) are derived from it. Vintage is allocated over won revenue so the displayed split matches the plan, and records that never closed are labelled **Prospect** — they have no customer relationship yet.
 
@@ -53,7 +55,7 @@ Consistency is enforced and checked at runtime:
 
 - Σ won revenue per year equals the reported actual, to the dollar.
 - Σ lead / quote / won revenue by vintage, sector, and channel reconciles exactly.
-- Wins ⊆ quotations ⊆ leads, with quotations that never converted preserved as `lost` records.
+- Wins ⊆ resolved quotations ⊆ leads; about 12% of each year's quotes stay **in flight** (`pending`) with positive quote value and no outcome yet, counted in coverage but excluded from win-rate math.
 
 `window.__salesEngine.verify()` returns an empty array when the dataset is internally consistent.
 

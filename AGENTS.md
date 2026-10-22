@@ -53,13 +53,13 @@ Data integrity is self-checking: `verifyData()` runs at boot and logs any imbala
 
 `BASE_YEAR = 2016` and `BASE_ACTUAL = 1120000` sit outside the array so the first displayed year has a prior-year target without adding an 11th chart bar.
 
-Generation (`buildYear`, `mulberry32` seed `20261022`) creates account records, assigns stages by shuffling, then distributes integer dollar values with `distributeBy` (largest-remainder normalisation). Vintage is allocated over won revenue (`assignVintage`, largest deals first) so the visible split tracks `vintageMix`. Records that never closed are labelled `prospect` and excluded from vintage filters and charts. Each quoted record carries `cycleDays` (channel-based, sector-adjusted), each open lead an `ageDays`, for the median-cycle and sales-cycle KPIs.
+Generation (`buildYear`, `mulberry32` seed `20261022`) creates account records, assigns stages by shuffling, then distributes integer dollar values with `distributeBy` (largest-remainder normalisation). Vintage is allocated over won revenue (`assignVintage`, largest deals first) so the visible split tracks `vintageMix`. Records that never closed are labelled `prospect` and excluded from vintage filters and charts. Each quoted record carries `cycleDays` (channel-based, sector-adjusted), each open lead an `ageDays`, for the median-cycle and sales-cycle KPIs. About 12% of each year's quotes stay `pending` (in flight): positive quote value, zero won revenue, excluded from win-rate denominators.
 
 ### Invariants
 
 1. `target(year) = priorYearActual × multiplier`; FY2017 uses `BASE_ACTUAL × multiplier`. There is no base-year fudge factor.
-2. Per year: Σ won revenue `=== actual`; Σ values by vintage, sector, and channel reconcile to the same total (prospects carry no vintage revenue).
-3. `stage` is one of `won`, `lost`, `open`; `won ⊆ quoted`, `quoted = won + lost`.
+2. Per year: Σ won revenue `=== actual`; Σ values by vintage, sector, and channel reconcile to the same total (prospects carry no vintage revenue); resolved quotes + pending === plan quote counts.
+3. `stage` is one of `won`, `lost`, `open`, `pending`; `quoted = won + lost`; pending carries a positive quote value and zero won value.
 4. `wonValue === quoteValue` for a won record; unconverted value is the sum of `quoteValue` on lost records.
 5. All money is integer USD.
 6. The dataset is deterministic: same seed, same records, same totals.
@@ -104,7 +104,7 @@ When a segment filter is active, the attainment card is replaced by "Share of Sc
 | `#btnModeAbs` / `#btnModePct`, `#btnShare`, `#btnReset` | Display mode, link copy, reset |
 | `#trendVerdict`, `#statCagr`, `#statHitRate`, `#statBestWorst`, `#statLost`, `#statLostSub`, `#actionNotes` | Verdict, decision notes, and derived statistics |
 | `#kpiActual`, `#kpiTarget`, `#kpiAttainment`, `#kpiAttainmentBar`, `#kpiWinRate` (+ `…Sub`, `#kpiThirdLabel`) | KPI cards (`—` + guidance text when the scope has no records) |
-| `#benchmarkGrid` | Benchmark tiles (ours vs B2B figures; click applies the relevant tab/filter) |
+| `#benchmarkGrid` | Static benchmark tiles (ours vs B2B figures) |
 | `#yearStrip` | Per-year attainment chips (click to isolate the year) |
 | `#trendChart`, `#vintageChart`, `#classificationChart`, `#channelChart` | Canvases |
 | `#vintageList`, `#classificationList`, `#channelList` | Facet rows (buttons that toggle filters) |
@@ -124,6 +124,9 @@ When a segment filter is active, the attainment card is replaced by "Share of Sc
 - Route every UI mutation through `renderAll`/`renderTable` and then `writeHash`; never leave the URL stale.
 - Preserve `prefers-reduced-motion` handling in charts and counters.
 - Keep the dark palette and existing Tailwind conventions; mobile-first classes (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`).
+- Every KPI card keeps a plain-language definition pinned at its foot (`border-t`, `mt-auto`); the third card swaps its definition when filters turn it into a revenue-share metric.
+- Interaction spotlight is CSS-first (`main.spotlight-on .card:not(:focus-within):not(.spotlight)`); JS only maintains `spotlight-on`, marks the clicked zone, and toggles it off when the same control is clicked again (`controlKey`). Do not re-add a focusout reset — re-rendered controls lose focus and the dim would drop.
+- Use documented platform APIs only: `navigator.clipboard.writeText` with a `window.prompt` fallback, `:focus-within`, `Element.closest`, `classList`. No `execCommand` or vendor shims.
 
 ## 9. Deployment
 
@@ -140,4 +143,5 @@ echo '{"source":{"branch":"main","path":"/"}}' | gh api -X POST repos/<owner>/sa
 - Commit before `gh repo create --source`; it pushes existing commits only.
 - Treat `409` from the Pages endpoint as already enabled; `422` means the branch/path is wrong.
 - Pages takes roughly a minute to publish; poll the URL before declaring failure.
-- Prefer building the git repository outside OneDrive paths when the project folder is synchronised; `.git` objects and OneDrive do not mix well.
+- This folder is the only working copy and the git worktree; commit and push from here. Keep OneDrive paused during a commit if the sync client locks the index.
+- Standalone copies exist nowhere else; do not recreate a separate build directory.

@@ -48,6 +48,10 @@
   @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } html { scroll-behavior: auto; } }
   th { font-weight: 600; }
   .slice-row.is-active { background: rgba(16,185,129,.12); }
+  main.spotlight-on .card:not(:focus-within):not(.spotlight) { opacity: .55; }
+  main.spotlight-on .card:not(:focus-within):not(.spotlight) canvas { filter: saturate(.6); }
+  .card.spotlight, .card:focus-within { border-color: rgba(16,185,129,.38); }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
   input[type=range] { accent-color: #10b981; }
 </style>
 </head>
@@ -103,9 +107,9 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-1 flex items-center text-xs" role="group" aria-label="Value display mode">
-          <button id="btnModeAbs" type="button" aria-pressed="true" class="seg-btn px-3 rounded-lg font-bold bg-emerald-500 text-slate-950 transition">$ Values</button>
-          <button id="btnModePct" type="button" aria-pressed="false" class="seg-btn px-3 rounded-lg font-medium text-slate-400 hover:text-white transition">% Share</button>
+        <div class="inline-flex items-center gap-0.5 bg-slate-900 border border-slate-800 rounded-xl p-1" role="group" aria-label="Value display mode">
+          <button id="btnModeAbs" type="button" aria-pressed="true" class="h-8 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20">$ Values</button>
+          <button id="btnModePct" type="button" aria-pressed="false" class="h-8 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">% Share</button>
         </div>
         <button id="btnShare" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Copy link</button>
         <button id="btnReset" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Reset</button>
@@ -139,14 +143,16 @@
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Actual sales
       </span>
       <div id="kpiActual" class="num text-[28px] sm:text-[32px] font-extrabold leading-none text-white mt-2">—</div>
-      <p id="kpiActualSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
+      <p id="kpiActualSub" class="text-xs text-slate-400 mt-1 leading-snug">—</p>
+      <p class="text-xs text-slate-500 leading-snug border-t border-slate-800/80 mt-auto pt-2">Revenue closed in the selected period.</p>
     </div>
     <div class="card rounded-2xl p-4 sm:p-5 flex flex-col min-h-[132px]">
       <span class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
         <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Dynamic target
       </span>
       <div id="kpiTarget" class="num text-[28px] sm:text-[32px] font-extrabold leading-none text-amber-400 mt-2">—</div>
-      <p id="kpiTargetSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
+      <p id="kpiTargetSub" class="text-xs text-slate-400 mt-1 leading-snug">—</p>
+      <p class="text-xs text-slate-500 leading-snug border-t border-slate-800/80 mt-auto pt-2">Goal: last year's revenue × the multiplier.</p>
     </div>
     <div class="card rounded-2xl p-4 sm:p-5 flex flex-col min-h-[132px]">
       <span class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
@@ -156,14 +162,16 @@
       <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
         <div id="kpiAttainmentBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-0 transition-all duration-500"></div>
       </div>
-      <p id="kpiAttainmentSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
+      <p id="kpiAttainmentSub" class="text-xs text-slate-400 mt-1 leading-snug">—</p>
+      <p id="kpiThirdHint" class="text-xs text-slate-500 leading-snug border-t border-slate-800/80 mt-auto pt-2">Actual sales as a share of plan — 100% means on target.</p>
     </div>
     <div class="card rounded-2xl p-4 sm:p-5 flex flex-col min-h-[132px]">
       <span class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
         <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>Quote win rate
       </span>
       <div id="kpiWinRate" class="num text-[28px] sm:text-[32px] font-extrabold leading-none text-cyan-400 mt-2">—</div>
-      <p id="kpiWinRateSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
+      <p id="kpiWinRateSub" class="text-xs text-slate-400 mt-1 leading-snug">—</p>
+      <p class="text-xs text-slate-500 leading-snug border-t border-slate-800/80 mt-auto pt-2">Resolved quotes that became deals; in-flight quotes excluded.</p>
     </div>
   </section>
 
@@ -468,10 +476,12 @@
 
   function buildYear(plan) {
     const nLeads = plan.leads, nQuotes = plan.quotes, nWins = plan.wins;
+    const nPending = Math.max(1, Math.round((nQuotes - nWins) * 0.12));
     const idx = Array.from({ length: nLeads }, (_, i) => i);
     for (let i = idx.length - 1; i > 0; i--) { const j = randInt(i + 1); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
-    const quoted = new Set(idx.slice(0, nQuotes));
-    const won = new Set(idx.slice(0, nWins)); // wins are always quoted: first nWins are within the quoted prefix
+    const quoted = new Set(idx.slice(nPending, nQuotes));
+    const pending = new Set(idx.slice(0, nPending));
+    const won = new Set(idx.slice(nPending, nPending + nWins)); // wins are quoted: first nWins after the pending slice
     const chanW = CHANNEL_WEIGHTS[plan.year];
 
     const yearRecords = [];
@@ -482,9 +492,10 @@
       const channel = weightedKey(CHANNELS, chanW);
       const isQuoted = quoted.has(i);
       const isWon = won.has(i);
+      const isPending = pending.has(i);
       yearRecords.push({
         id: recId++, year: plan.year, account: acct.name, accountId: acct.id, accountWeight: acct.weight, sector: acct.sector,
-        channel: channel, vintage: null, stage: isWon ? 'won' : (isQuoted ? 'lost' : 'open'),
+        channel: channel, vintage: null, stage: isWon ? 'won' : (isPending ? 'pending' : (isQuoted ? 'lost' : 'open')),
         leadValue: 0, quoteValue: 0, wonValue: 0,
         cycleDays: 0, ageDays: 0
       });
@@ -501,6 +512,11 @@
     const lostVals = distributeBy(Math.round(plan.actual * plan.lostRatio), lostRecs.map((r) => 1 + r.accountWeight * (0.5 + rng())));
     lostRecs.forEach((r, i) => { r.quoteValue = lostVals[i]; });
 
+    // pending quotes are live pipeline: mid-size deal values, not yet resolved
+    const pendingRecs = yearRecords.filter((r) => r.stage === 'pending');
+    const pendingVals = distributeBy(Math.round(plan.actual * 0.35), pendingRecs.map((r) => 1 + r.accountWeight * (0.5 + rng())));
+    pendingRecs.forEach((r, i) => { r.quoteValue = pendingVals[i]; });
+
     // lead estimates sit above quote value for quoted records, small for raw leads
     yearRecords.forEach((r) => {
       if (r.quoteValue > 0) r.leadValue = Math.round((r.quoteValue * (1.15 + rng() * 1.05)) / 10) * 10;
@@ -514,6 +530,8 @@
       if (r.stage !== 'won') r.vintage = 'prospect';
       if (r.stage === 'open') {
         r.ageDays = Math.round(5 + rng() * 80); // prospects age in the pipeline
+      } else if (r.stage === 'pending') {
+        r.ageDays = Math.round(5 + rng() * 45); // in-flight quotes aging toward a decision
       } else {
         const sectorFactor = r.sector === 'academic' ? 1.35 : 1;
         r.cycleDays = Math.max(7, Math.round(CYCLE_BASE[r.channel] * (0.6 + rng() * 1.3) * sectorFactor));
@@ -541,13 +559,14 @@
     for (const p of YEAR_PLANS) {
       const yr = records.filter((r) => r.year === p.year);
       const won = yr.filter((r) => r.stage === 'won');
-      const quoted = yr.filter((r) => r.stage !== 'open');
+      const quoted = yr.filter((r) => r.stage === 'won' || r.stage === 'lost');
+      const pending = yr.filter((r) => r.stage === 'pending');
       const wonSum = won.reduce((a, r) => a + r.wonValue, 0);
       if (yr.length !== p.leads) issues.push('lead count ' + p.year);
-      if (quoted.length !== p.quotes) issues.push('quote count ' + p.year);
+      if (quoted.length + pending.length !== p.quotes) issues.push('quote count ' + p.year);
       if (won.length !== p.wins) issues.push('win count ' + p.year);
       if (wonSum !== p.actual) issues.push('revenue mismatch ' + p.year + ' ' + wonSum + ' vs ' + p.actual);
-      if (won.some((r) => r.wonValue > r.quoteValue)) issues.push('won exceeds quote ' + p.year);
+      if (pending.some((r) => r.wonValue !== 0 || r.quoteValue <= 0)) issues.push('pending integrity ' + p.year);
       for (const dim of ['vintage', 'sector', 'channel']) {
         const keys = dim === 'vintage' ? VINTAGE : dim === 'sector' ? SECTORS : CHANNELS;
         const sum = keys.reduce((a, k) => a + won.filter((r) => r[dim] === k).reduce((x, r) => x + r.wonValue, 0), 0);
@@ -606,7 +625,7 @@
     for (const r of rows) {
       t.leads++;
       t.leadValue += r.leadValue;
-      if (r.stage !== 'open') { t.quoted++; t.quoteValue += r.quoteValue; }
+      if (r.stage === 'won' || r.stage === 'lost') { t.quoted++; t.quoteValue += r.quoteValue; }
       if (r.stage === 'won') { t.wins++; t.wonValue += r.wonValue; }
     }
     return t;
@@ -622,7 +641,7 @@
       let g = m.get(k);
       if (!g) { g = { key: k, leads: 0, quoted: 0, wins: 0, leadValue: 0, quoteValue: 0, wonValue: 0 }; m.set(k, g); }
       g.leads++; g.leadValue += r.leadValue;
-      if (r.stage !== 'open') { g.quoted++; g.quoteValue += r.quoteValue; }
+      if (r.stage === 'won' || r.stage === 'lost') { g.quoted++; g.quoteValue += r.quoteValue; }
       if (r.stage === 'won') { g.wins++; g.wonValue += r.wonValue; }
     }
     return Array.from(m.values());
@@ -731,18 +750,16 @@
   }
 
   function benchTile(opts) {
-    const box = document.createElement('button');
-    box.type = 'button';
+    const box = document.createElement('div');
     const tone = opts.tone === 'good' ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
       : opts.tone === 'warn' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10'
         : 'text-slate-300 border-slate-800 bg-slate-900/60';
-    box.className = 'ring-focus text-left rounded-xl border p-3 transition hover:border-emerald-500/40 flex flex-col gap-1 ' + tone;
+    box.className = 'text-left rounded-xl border p-3 flex flex-col gap-1 ' + tone;
     box.innerHTML =
       '<span class="text-[11px] font-bold uppercase tracking-wider opacity-80">' + opts.label + '</span>' +
       '<span class="num text-xl font-extrabold leading-none">' + opts.value + '</span>' +
       '<span class="text-xs opacity-80 leading-snug">' + opts.detail + '</span>' +
       '<span class="text-[11px] font-bold uppercase tracking-wider opacity-80">' + opts.status + '</span>';
-    if (opts.apply) box.onclick = () => { opts.apply(); renderAll(); };
     return box;
   }
 
@@ -761,56 +778,58 @@
     const leadConv = pct(t.wins, t.leads);
     const asp = t.wins ? t.wonValue / t.wins : 0;
     const cycle = median(won.map((r) => r.cycleDays));
-    const openPipe = open.reduce((a, r) => a + r.leadValue, 0);
-    const coverage = plan > 0 ? openPipe / plan : 0;
+    // coverage: mean of per-year open+in-flight pipeline ÷ that year's plan (an ALL-view decade sum would deflate it)
+    const covYears = state.year === 'ALL' ? YEARS : [state.year];
+    const covVals = covYears.map((y) => {
+      const yr = rows.filter((r) => r.year === y);
+      const num = yr.filter((r) => r.stage === 'open').reduce((a, r) => a + r.leadValue, 0)
+        + yr.filter((r) => r.stage === 'pending').reduce((a, r) => a + r.quoteValue, 0);
+      const tgt = targets[YEAR_INDEX.get(y)];
+      return tgt > 0 ? num / tgt : 0;
+    });
+    const coverage = covVals.length ? covVals.reduce((a, b) => a + b, 0) / covVals.length : 0;
 
     box.appendChild(benchTile({
       label: 'Win rate',
       value: winRate.toFixed(1) + '%',
       detail: 'quotes closed / quotes issued',
       status: winRate >= BENCH.winRateTop ? 'High-performing range (47%+)' : winRate >= BENCH.winRate ? 'Above 21% avg' : 'Below 21% avg',
-      tone: winRate >= BENCH.winRate ? 'good' : 'warn',
-      apply: () => { state.tab = 'won'; state.page = 1; }
+      tone: winRate >= BENCH.winRate ? 'good' : 'warn'
     }));
     box.appendChild(benchTile({
       label: 'Deal loss rate',
       value: won.length ? lossRate.toFixed(1) + '%' : '—',
       detail: 'quoted value never closed',
       status: !won.length ? 'No won deals in scope' : lossRate <= BENCH.lossRate ? 'Better than 79% avg' : 'Worse than 79% avg',
-      tone: !won.length ? 'warn' : lossRate <= BENCH.lossRate ? 'good' : 'warn',
-      apply: () => { state.tab = 'lost'; state.page = 1; }
+      tone: !won.length ? 'warn' : lossRate <= BENCH.lossRate ? 'good' : 'warn'
     }));
     box.appendChild(benchTile({
       label: 'Lead → close',
       value: leadConv.toFixed(1) + '%',
       detail: 'won deals / leads captured',
       status: leadConv >= BENCH.leadConv ? 'Above 13% avg' : 'Below 13% avg',
-      tone: leadConv >= BENCH.leadConv ? 'good' : 'warn',
-      apply: () => { state.tab = 'all'; state.page = 1; }
+      tone: leadConv >= BENCH.leadConv ? 'good' : 'warn'
     }));
     box.appendChild(benchTile({
       label: 'Avg deal size',
       value: compact(asp),
       detail: 'mid-market median $125k · enterprise $400k+',
       status: asp >= BENCH.acvEnt ? 'Enterprise band' : asp >= BENCH.acvMid ? 'At/above mid-market' : asp >= BENCH.acvSmb ? 'SMB band' : 'Below SMB median',
-      tone: asp >= BENCH.acvMid ? 'good' : 'warn',
-      apply: () => { state.tab = 'won'; state.page = 1; }
+      tone: asp >= BENCH.acvMid ? 'good' : 'warn'
     }));
     box.appendChild(benchTile({
       label: 'Sales cycle',
       value: won.length ? Math.round(cycle) + ' d' : '—',
       detail: 'median days lead → close',
       status: !won.length ? 'No won deals in scope' : cycle <= BENCH.cycle ? 'Faster than 84 d avg' : 'Slower than 84 d avg',
-      tone: !won.length ? 'warn' : cycle <= BENCH.cycle ? 'good' : 'warn',
-      apply: () => { state.tab = 'won'; state.page = 1; }
+      tone: !won.length ? 'warn' : cycle <= BENCH.cycle ? 'good' : 'warn'
     }));
     box.appendChild(benchTile({
       label: 'Pipeline ÷ plan',
       value: coverage.toFixed(1) + '×',
-      detail: 'open pipeline vs dynamic plan',
+      detail: state.year === 'ALL' ? 'avg annual open + in-flight ÷ plan' : 'open + in-flight pipeline vs plan',
       status: !rows.length ? 'No records in scope' : coverage >= 3 && coverage <= 5 ? 'Within 3–5× band' : 'Outside 3–5× band',
-      tone: !rows.length ? 'warn' : coverage >= 3 && coverage <= 5 ? 'good' : 'warn',
-      apply: () => { state.tab = 'all'; state.page = 1; }
+      tone: !rows.length ? 'warn' : coverage >= 3 && coverage <= 5 ? 'good' : 'warn'
     }));
   }
 
@@ -967,6 +986,7 @@
       const allWon = totals(allRows).wonValue;
       const share = pct(actual, allWon);
       thirdLabel.textContent = 'Share of Scope Revenue';
+      $('kpiThirdHint').textContent = 'This segment’s share of total revenue in the period.';
       third.textContent = share.toFixed(1) + '%';
       third.className = 'num text-[28px] sm:text-[32px] font-extrabold leading-none mt-2 ' + (share >= 50 ? 'text-emerald-400' : 'text-cyan-300');
       thirdBar.style.width = Math.min(100, share) + '%';
@@ -975,6 +995,7 @@
     } else {
       const attain = pct(actual, companyTarget);
       thirdLabel.textContent = 'Attainment vs Plan';
+      $('kpiThirdHint').textContent = 'Actual sales as a share of plan — 100% means on target.';
       third.textContent = attain.toFixed(1) + '%';
       const good = attain >= 100, mid = attain >= 90;
       third.className = 'num text-[28px] sm:text-[32px] font-extrabold leading-none mt-2 ' + (good ? 'text-emerald-400' : mid ? 'text-amber-400' : 'text-rose-400');
@@ -1268,25 +1289,29 @@
     $('funnelLeadsValue').textContent = compact(t.leadValue);
     $('funnelLeadsValue').title = money(t.leadValue);
 
-    $('funnelQuotesCount').textContent = num.format(t.quoted) + ' quotes';
+    const pendRows = rows.filter((r) => r.stage === 'pending');
+    const pendCount = pendRows.length;
+    const pendValue = pendRows.reduce((a, r) => a + r.quoteValue, 0);
+    const issued = t.quoted + pendCount;
+    $('funnelQuotesCount').textContent = num.format(issued) + ' quotes';
     $('funnelQuotesValue').textContent = compact(t.quoteValue);
     $('funnelQuotesValue').title = money(t.quoteValue);
     const lostCount = t.quoted - t.wins;
-    $('funnelQuotesSub').textContent = num.format(lostCount) + ' never converted · ' + compact(t.quoteValue - t.wonValue) + ' lost';
+    $('funnelQuotesSub').textContent = pendCount ? num.format(issued) + ' issued · ' + num.format(pendCount) + ' in flight (' + compact(pendValue) + ' live) · ' + num.format(lostCount) + ' closed-lost' : num.format(lostCount) + ' never converted · ' + compact(t.quoteValue - t.wonValue) + ' lost';
 
     $('funnelSalesCount').textContent = num.format(t.wins) + ' won';
     $('funnelSalesValue').textContent = compact(t.wonValue);
     $('funnelSalesValue').title = money(t.wonValue);
     $('funnelSalesSub').textContent = t.wins ? 'Avg deal ' + compact(t.wonValue / t.wins) : 'No closed deals in scope';
 
-    $('metricLeadToQuote').textContent = pctStr(t.quoted, t.leads) + ' of leads';
-    $('metricQuoteToClose').textContent = pctStr(t.wins, t.quoted) + ' of quotes';
+    $('metricLeadToQuote').textContent = pctStr(issued, t.leads) + ' of leads';
+    $('metricQuoteToClose').textContent = pctStr(t.wins, t.quoted) + ' of resolved';
     $('metricFunnelYield').textContent = pctStr(t.wonValue, t.leadValue) + ' of pipeline';
   }
 
   /* ---------------- table ---------------- */
   const TABS = [
-    ['all', 'All records'], ['open', 'Unquoted leads'], ['lost', 'Lost quotes'], ['won', 'Won deals']
+    ['all', 'All records'], ['open', 'Unquoted leads'], ['pending', 'In-flight quotes'], ['lost', 'Lost quotes'], ['won', 'Won deals']
   ];
   function renderTabs() {
     const box = $('tableTabs');
@@ -1396,7 +1421,9 @@
         ? '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">Won</span>'
         : r.stage === 'lost'
           ? '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/25">Lost</span>'
-          : '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600">Lead</span>';
+          : r.stage === 'pending'
+            ? '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/25">In flight</span>'
+            : '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600">Lead</span>';
       tr2.innerHTML =
         '<td class="py-2 px-1.5 num text-slate-400">' + r.year + '</td>' +
         '<td class="py-2 px-1.5 text-slate-200"><span class="block truncate max-w-[150px] sm:max-w-[220px]" title="' + r.account + '">' + r.account + '</span></td>' +
@@ -1549,8 +1576,10 @@
     state.mode = mode;
     $('btnModeAbs').setAttribute('aria-pressed', mode === 'absolute' ? 'true' : 'false');
     $('btnModePct').setAttribute('aria-pressed', mode === 'percentage' ? 'true' : 'false');
-    $('btnModeAbs').className = 'seg-btn ring-focus px-3 rounded-lg transition ' + (mode === 'absolute' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white font-medium');
-    $('btnModePct').className = 'seg-btn ring-focus px-3 rounded-lg transition ' + (mode === 'percentage' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white font-medium');
+    const activeCls = 'h-8 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20';
+    const idleCls = 'h-8 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white';
+    $('btnModeAbs').className = mode === 'absolute' ? activeCls : idleCls;
+    $('btnModePct').className = mode === 'percentage' ? activeCls : idleCls;
     if (!skipRender) renderAll();
     writeHash();
   }
@@ -1657,19 +1686,50 @@
 
   $('btnShare').onclick = async () => {
     const btn = $('btnShare');
-    const url = location.href;
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(location.href);
       btn.textContent = 'Copied ✓';
-    } catch (e) {
-      const ta = document.createElement('textarea');
-      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); btn.textContent = 'Copied ✓'; } catch (err) { btn.textContent = 'Copy failed'; }
-      ta.remove();
+    } catch (err) {
+      // Clipboard API unavailable (insecure context or denied) — show the URL for manual copying.
+      window.prompt('Copy this link', location.href);
+      btn.textContent = 'Link shown';
     }
     setTimeout(() => { btn.textContent = 'Copy link'; }, 1600);
   };
+
+  /* ---------------- interaction spotlight ---------------- */
+  const mainEl = document.querySelector('main');
+  let lastKey = null;
+  let suppressFocus = false;
+  function controlKey(el) {
+    if (!el || !el.tagName) return null;
+    const zone = (el.closest && el.closest('.card, header')) || el;
+    const tag = el.tagName;
+    const txt = (el.textContent || '').trim().slice(0, 40);
+    const idx = Array.prototype.indexOf.call(zone.querySelectorAll(tag), el);
+    return [tag, el.id || '', txt, idx].join('|');
+  }
+  function clearSpotlight() {
+    mainEl.classList.remove('spotlight-on');
+    document.querySelectorAll('.spotlight').forEach((c) => c.classList.remove('spotlight'));
+  }
+  document.addEventListener('pointerdown', (event) => {
+    const target = event.target;
+    const zone = target.closest ? target.closest('.card, header') : null;
+    const key = controlKey(target);
+    const reclick = mainEl.classList.contains('spotlight-on') && key !== null && key === lastKey;
+    clearSpotlight();
+    if (!zone || reclick) {
+      lastKey = null;
+      suppressFocus = true;
+      setTimeout(() => { suppressFocus = false; }, 0);
+      return;
+    }
+    zone.classList.add('spotlight');
+    mainEl.classList.add('spotlight-on');
+    lastKey = key;
+  }, true);
+  document.addEventListener('focusin', () => { if (!suppressFocus) mainEl.classList.add('spotlight-on'); });
 
   /* ---------------- boot ---------------- */
   readHash();

@@ -48,7 +48,6 @@
   @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } html { scroll-behavior: auto; } }
   th { font-weight: 600; }
   .slice-row.is-active { background: rgba(16,185,129,.12); }
-  .card:focus-within { border-color: rgba(16,185,129,.38); }
   @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
   input[type=range] { accent-color: #10b981; }
 </style>
@@ -1272,7 +1271,7 @@
         '</span>' +
         '<span class="num font-bold text-slate-100 shrink-0">' +
           (state.mode === 'absolute' ? fmtUSD(v) : share.toFixed(1) + '%') +
-          '<span class="ml-1.5 text-xs font-normal text-slate-500">' + share.toFixed(1) + '%</span>' +
+          (state.mode === 'absolute' ? '<span class="ml-1.5 text-xs font-normal text-slate-500">' + share.toFixed(1) + '%</span>' : '') +
         '</span>';
       row.onclick = () => toggleSegment(dim, k);
       box.appendChild(row);

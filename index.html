@@ -316,8 +316,8 @@
   </section>
 
   <footer class="max-w-7xl mx-auto pt-6 text-center space-y-2">
-    <p class="text-xs text-slate-400">Interactive infographic · figures in USD · FY2026 is year-to-date · targets inherit prior-year actuals, so a downturn also lowers the next target.</p>
-    <p class="text-xs text-slate-500">100% client-side. No tracking, no backend, no build step.</p>
+    <p class="text-xs text-slate-300">Illustrative demo data — not actual customer or sales records. Figures in USD; FY2026 is year-to-date.</p>
+    <p class="text-xs text-slate-400">Targets inherit prior-year actuals, so a downturn also lowers the next target. 100% client-side: no tracking, no backend, no build step.</p>
   </footer>
 </main>
 
@@ -358,11 +358,13 @@
     { year: 2026, actual: 4870000, leads: 201, quotes: 65, wins: 27, lostRatio: 1.71, newRate: 0.08, winback: 0.05, vintageMix: [22, 68, 10] }
   ];
   const VINTAGE = ['new', 'current', 'old'];
-  const VINTAGE_LABEL = { new: 'New customer', current: 'Retained', old: 'Reactivated' };
+  const VINTAGE_LABEL = { new: 'New customer', current: 'Retained', old: 'Reactivated', prospect: 'Prospect' };
   const VINTAGE_COLOR = { new: '#10b981', current: '#06b6d4', old: '#94a3b8' };
+  const VINTAGE_SHORT = { new: 'New', current: 'Retained', old: 'Reactivated', prospect: 'Prospect' };
   const SECTORS = ['commercial', 'academic'];
   const SECTOR_LABEL = { commercial: 'Commercial', academic: 'Academic & research' };
   const SECTOR_COLOR = { commercial: '#8b5cf6', academic: '#ec4899' };
+  const SECTOR_SHORT = { commercial: 'Commercial', academic: 'Academic' };
   const CHANNELS = ['renewals', 'expansion', 'webSocial', 'outbound', 'partners'];
   const CHANNEL_LABEL = { renewals: 'Renewals', expansion: 'Expansion', webSocial: 'Web & social', outbound: 'Outbound & SDRs', partners: 'Partners' };
   const CHANNEL_COLOR = { renewals: '#10b981', expansion: '#3b82f6', webSocial: '#f59e0b', outbound: '#ec4899', partners: '#8b5cf6' };
@@ -430,21 +432,18 @@
     return distributeBy(total, w);
   }
 
-  function quota(total, pcts) {
-    const raw = pcts.map((p) => total * p / 100);
-    const out = raw.map(Math.floor);
-    let rem = total - out.reduce((a, b) => a + b, 0);
-    const order = raw.map((v, i) => [v - out[i], i]).sort((a, b) => b[0] - a[0]);
-    for (let k = 0; k < rem; k++) out[order[k % out.length][1]]++;
-    return out;
-  }
-
   function assignVintage(rows, mix) {
-    const counts = quota(rows.length, mix);
-    const bag = [];
-    counts.forEach((c, i) => { for (let n = 0; n < c; n++) bag.push(VINTAGE[i]); });
-    for (let i = bag.length - 1; i > 0; i--) { const j = randInt(i + 1); const t = bag[i]; bag[i] = bag[j]; bag[j] = t; }
-    rows.forEach((r, i) => { r.vintage = bag[i] || VINTAGE[0]; });
+    // Greedy over won revenue: large deals are placed where the remaining dollar capacity is largest,
+    // so the visible revenue split tracks the designed mix instead of the deal count.
+    const total = rows.reduce((a, r) => a + r.wonValue, 0);
+    const remaining = mix.map((p) => total * p / 100);
+    const ordered = rows.slice().sort((a, b) => b.wonValue - a.wonValue);
+    ordered.forEach((r) => {
+      let best = 0;
+      for (let k = 1; k < VINTAGE.length; k++) if (remaining[k] > remaining[best]) best = k;
+      r.vintage = VINTAGE[best];
+      remaining[best] -= r.wonValue;
+    });
   }
 
   function buildYear(plan) {
@@ -490,7 +489,7 @@
     openRecs.forEach((r, i) => { r.leadValue = openVals[i]; });
 
     assignVintage(yearRecords.filter((r) => r.stage === 'won'), plan.vintageMix);
-    assignVintage(yearRecords.filter((r) => r.stage !== 'won'), plan.vintageMix);
+    yearRecords.forEach((r) => { if (r.stage !== 'won') r.vintage = 'prospect'; });
 
     records.push(...yearRecords);
   }
@@ -1160,8 +1159,8 @@
       tr2.innerHTML =
         '<td class="py-2 px-1.5 num text-slate-400">' + r.year + '</td>' +
         '<td class="py-2 px-1.5 text-slate-200"><span class="block truncate max-w-[150px] sm:max-w-[220px]" title="' + r.account + '">' + r.account + '</span></td>' +
-        '<td class="py-2 px-1.5 text-slate-400 hidden sm:table-cell">' + VINTAGE_LABEL[r.vintage] + '</td>' +
-        '<td class="py-2 px-1.5 text-slate-400 hidden lg:table-cell">' + SECTOR_LABEL[r.sector] + '</td>' +
+        '<td class="py-2 px-1.5 text-slate-400 hidden sm:table-cell">' + VINTAGE_SHORT[r.vintage] + '</td>' +
+        '<td class="py-2 px-1.5 text-slate-400 hidden lg:table-cell">' + SECTOR_SHORT[r.sector] + '</td>' +
         '<td class="py-2 px-1.5 text-slate-400 hidden md:table-cell">' + CHANNEL_LABEL[r.channel] + '</td>' +
         '<td class="py-2 px-1.5 num text-slate-400 text-right hidden lg:table-cell">' + fmtUSD(r.leadValue) + '</td>' +
         '<td class="py-2 px-1.5 num text-slate-300 text-right hidden md:table-cell">' + (r.quoteValue ? fmtUSD(r.quoteValue) : '—') + '</td>' +
@@ -1177,7 +1176,7 @@
           '<span class="num text-sm font-bold shrink-0 ' + (r.wonValue ? 'text-emerald-300' : 'text-slate-500') + '">' + (r.wonValue ? fmtUSD(r.wonValue) : '—') + '</span>' +
         '</div>' +
         '<div class="mt-1 flex items-center justify-between gap-2 text-xs text-slate-400">' +
-          '<span class="truncate">' + r.year + ' · ' + VINTAGE_LABEL[r.vintage] + ' · ' + CHANNEL_LABEL[r.channel] + '</span>' +
+          '<span class="truncate">' + r.year + ' · ' + VINTAGE_SHORT[r.vintage] + ' · ' + CHANNEL_LABEL[r.channel] + '</span>' +
           stageBadge +
         '</div>';
       cards.appendChild(card);
@@ -1217,7 +1216,7 @@
         '<td class="py-2 px-1.5 num text-right text-slate-400 hidden md:table-cell">' + (g.wins ? compact(g.wonValue / g.wins) : '—') + '</td>';
       tr.onclick = () => {
         if (dim === 'year') { state.year = state.year === g.key ? 'ALL' : g.key; }
-        else if (dim === 'vintage') state.vintage = state.vintage === g.key ? null : g.key;
+        else if (dim === 'vintage') { if (VINTAGE.includes(g.key)) state.vintage = state.vintage === g.key ? null : g.key; }
         else if (dim === 'cls') state.sector = state.sector === g.key ? null : g.key;
         else if (dim === 'channel') state.channel = state.channel === g.key ? null : g.key;
         else { state.search = g.key; $('tableSearch').value = g.key; }

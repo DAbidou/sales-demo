@@ -53,12 +53,12 @@ Data integrity is self-checking: `verifyData()` runs at boot and logs any imbala
 
 `BASE_YEAR = 2016` and `BASE_ACTUAL = 1120000` sit outside the array so the first displayed year has a prior-year target without adding an 11th chart bar.
 
-Generation (`buildYear`, `mulberry32` seed `20261022`) creates account records, assigns stages by shuffling, then distributes integer dollar values with `distributeBy` (largest-remainder normalisation). Vintage labels are applied by quota (`assignVintage`), not by guesswork.
+Generation (`buildYear`, `mulberry32` seed `20261022`) creates account records, assigns stages by shuffling, then distributes integer dollar values with `distributeBy` (largest-remainder normalisation). Vintage is allocated over won revenue (`assignVintage`, largest deals first) so the visible split tracks `vintageMix`. Records that never closed are labelled `prospect` and excluded from vintage filters and charts.
 
 ### Invariants
 
 1. `target(year) = priorYearActual × multiplier`; FY2017 uses `BASE_ACTUAL × multiplier`. There is no base-year fudge factor.
-2. Per year: Σ won revenue `=== actual`; Σ values by vintage, sector, and channel reconcile to the same total.
+2. Per year: Σ won revenue `=== actual`; Σ values by vintage, sector, and channel reconcile to the same total (prospects carry no vintage revenue).
 3. `stage` is one of `won`, `lost`, `open`; `won ⊆ quoted`, `quoted = won + lost`.
 4. `wonValue === quoteValue` for a won record; unconverted value is the sum of `quoteValue` on lost records.
 5. All money is integer USD.

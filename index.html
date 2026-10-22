@@ -34,7 +34,7 @@
     background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(15,23,42,.78));
     border: 1px solid rgba(148,163,184,.14);
     box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -28px rgba(0,0,0,.9);
-    transition: opacity .22s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
   }
   @media (hover:hover) { .card:hover { border-color: rgba(16,185,129,.28); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 24px 48px -30px rgba(16,185,129,.35); } }
   .num { font-variant-numeric: tabular-nums; }
@@ -48,9 +48,7 @@
   @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } html { scroll-behavior: auto; } }
   th { font-weight: 600; }
   .slice-row.is-active { background: rgba(16,185,129,.12); }
-  main.spotlight-on .card:not(:focus-within):not(.spotlight) { opacity: .55; }
-  main.spotlight-on .card:not(:focus-within):not(.spotlight) canvas { filter: saturate(.6); }
-  .card.spotlight, .card:focus-within { border-color: rgba(16,185,129,.38); }
+  .card:focus-within { border-color: rgba(16,185,129,.38); }
   @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
   input[type=range] { accent-color: #10b981; }
 </style>
@@ -1696,40 +1694,6 @@
     }
     setTimeout(() => { btn.textContent = 'Copy link'; }, 1600);
   };
-
-  /* ---------------- interaction spotlight ---------------- */
-  const mainEl = document.querySelector('main');
-  let lastKey = null;
-  let suppressFocus = false;
-  function controlKey(el) {
-    if (!el || !el.tagName) return null;
-    const zone = (el.closest && el.closest('.card, header')) || el;
-    const tag = el.tagName;
-    const txt = (el.textContent || '').trim().slice(0, 40);
-    const idx = Array.prototype.indexOf.call(zone.querySelectorAll(tag), el);
-    return [tag, el.id || '', txt, idx].join('|');
-  }
-  function clearSpotlight() {
-    mainEl.classList.remove('spotlight-on');
-    document.querySelectorAll('.spotlight').forEach((c) => c.classList.remove('spotlight'));
-  }
-  document.addEventListener('pointerdown', (event) => {
-    const target = event.target;
-    const zone = target.closest ? target.closest('.card, header') : null;
-    const key = controlKey(target);
-    const reclick = mainEl.classList.contains('spotlight-on') && key !== null && key === lastKey;
-    clearSpotlight();
-    if (!zone || reclick) {
-      lastKey = null;
-      suppressFocus = true;
-      setTimeout(() => { suppressFocus = false; }, 0);
-      return;
-    }
-    zone.classList.add('spotlight');
-    mainEl.classList.add('spotlight-on');
-    lastKey = key;
-  }, true);
-  document.addEventListener('focusin', () => { if (!suppressFocus) mainEl.classList.add('spotlight-on'); });
 
   /* ---------------- boot ---------------- */
   readHash();

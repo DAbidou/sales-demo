@@ -125,7 +125,6 @@ When a segment filter is active, the attainment card is replaced by "Share of Sc
 - Preserve `prefers-reduced-motion` handling in charts and counters.
 - Keep the dark palette and existing Tailwind conventions; mobile-first classes (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`).
 - Every KPI card keeps a plain-language definition pinned at its foot (`border-t`, `mt-auto`); the third card swaps its definition when filters turn it into a revenue-share metric.
-- Interaction spotlight is CSS-first (`main.spotlight-on .card:not(:focus-within):not(.spotlight)`); JS only maintains `spotlight-on`, marks the clicked zone, and toggles it off when the same control is clicked again (`controlKey`). Do not re-add a focusout reset — re-rendered controls lose focus and the dim would drop.
 - Use documented platform APIs only: `navigator.clipboard.writeText` with a `window.prompt` fallback, `:focus-within`, `Element.closest`, `classList`. No `execCommand` or vendor shims.
 
 ## 9. Deployment

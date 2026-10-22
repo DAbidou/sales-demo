@@ -35,7 +35,6 @@ Single file. No build step. No backend. No tracking.
 | Search | Filters the ledger by customer, channel, vintage, or sector |
 | Copy link | Copies the current view (filters + scenario) to the clipboard |
 | Reset | Restores the default scenario |
-| Click any control | Dims the other panels so the active one stands out; click it again to restore everything |
 
 All figures are in USD. FY2026 is year-to-date (the page is dated October 2026).
 

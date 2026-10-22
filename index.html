@@ -1252,8 +1252,9 @@
     const m = new Map();
     rows.forEach((r) => {
       let a = m.get(r.account);
-      if (!a) { a = { name: r.account, won: 0, vintage: r.vintage, channel: r.channel, sector: r.sector, deals: 0 }; m.set(r.account, a); }
+      if (!a) { a = { name: r.account, won: 0, vintages: { new: 0, current: 0, old: 0 }, channel: r.channel, sector: r.sector, deals: 0 }; m.set(r.account, a); }
       a.won += r.wonValue; a.deals++;
+      a.vintages[r.vintage] += r.wonValue;
     });
     const top = Array.from(m.values()).sort((a, b) => b.won - a.won).slice(0, 5);
     const max = top.length ? top[0].won : 1;
@@ -1264,6 +1265,12 @@
       return;
     }
     top.forEach((a, i) => {
+      const dominant = VINTAGE.reduce((best, k) => (a.vintages[k] > a.vintages[best] ? k : best), 'new');
+      const vintagesSeen = VINTAGE.filter((k) => a.vintages[k] > 0);
+      const shortLabel = { new: 'New', current: 'Retained', old: 'Reactivated' };
+      const mix = vintagesSeen.length > 1
+        ? 'Vintage mix: ' + vintagesSeen.map((k) => shortLabel[k] + ' ' + Math.round(pct(a.vintages[k], a.won)) + '%').join(' · ')
+        : 'Vintage: ' + shortLabel[dominant];
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'ring-focus w-full text-left group';
@@ -1273,7 +1280,8 @@
           '<span class="num font-bold text-white shrink-0">' + compact(a.won) + '</span>' +
         '</div>' +
         '<div class="mt-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all" style="width:' + Math.max(4, (a.won / max) * 100) + '%"></span></div>' +
-        '<div class="mt-0.5 text-xs text-slate-500">' + VINTAGE_LABEL[a.vintage] + ' · ' + SECTOR_LABEL[a.sector] + ' · ' + CHANNEL_LABEL[a.channel] + ' · ' + a.deals + ' deal' + (a.deals > 1 ? 's' : '') + '</div>';
+        '<div class="mt-0.5 text-xs text-slate-500">' + SECTOR_LABEL[a.sector] + ' · ' + CHANNEL_LABEL[a.channel] + ' · ' + a.deals + ' deal' + (a.deals > 1 ? 's' : '') + '</div>' +
+        '<div class="text-xs text-slate-500">' + mix + '</div>';
       b.onclick = () => { state.search = a.name; $('tableSearch').value = a.name; state.page = 1; renderAll(); };
       box.appendChild(b);
     });

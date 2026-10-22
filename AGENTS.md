@@ -103,7 +103,7 @@ When a segment filter is active, the attainment card is replaced by "Share of Sc
 | `#yearSelectorContainer` | Year pills (built in `renderYearPills`) |
 | `#btnModeAbs` / `#btnModePct`, `#btnShare`, `#btnReset` | Display mode, link copy, reset |
 | `#trendVerdict`, `#statCagr`, `#statHitRate`, `#statBestWorst`, `#statLost`, `#statLostSub`, `#actionNotes` | Verdict, decision notes, and derived statistics |
-| `#kpiActual`, `#kpiTarget`, `#kpiAttainment`, `#kpiAttainmentBar`, `#kpiWinRate` (+ `…Sub`, `#kpiThirdLabel`) | KPI cards (`—` + guidance text when the scope has no records) |
+| `#kpiActual`, `#kpiTarget`, `#kpiAttainment`, `#kpiAttainmentBar`, `#kpiWinRate` (+ `…Sub`, `#kpiThirdLabel`, `#kpiThirdHint`) | KPI cards (`—` + guidance text when the scope has no records) |
 | `#benchmarkGrid` | Static benchmark tiles (ours vs B2B figures) |
 | `#yearStrip` | Per-year attainment chips (click to isolate the year) |
 | `#trendChart`, `#vintageChart`, `#classificationChart`, `#channelChart` | Canvases |

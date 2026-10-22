@@ -108,8 +108,8 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <div class="inline-flex items-center gap-0.5 bg-slate-900 border border-slate-800 rounded-xl p-1" role="group" aria-label="Value display mode">
-          <button id="btnModeAbs" type="button" aria-pressed="true" class="h-8 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20">$ Values</button>
-          <button id="btnModePct" type="button" aria-pressed="false" class="h-8 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">% Share</button>
+          <button id="btnModeAbs" type="button" aria-pressed="true" class="h-10 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20">$ Values</button>
+          <button id="btnModePct" type="button" aria-pressed="false" class="h-10 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">% Share</button>
         </div>
         <button id="btnShare" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Copy link</button>
         <button id="btnReset" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Reset</button>
@@ -1576,8 +1576,8 @@
     state.mode = mode;
     $('btnModeAbs').setAttribute('aria-pressed', mode === 'absolute' ? 'true' : 'false');
     $('btnModePct').setAttribute('aria-pressed', mode === 'percentage' ? 'true' : 'false');
-    const activeCls = 'h-8 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20';
-    const idleCls = 'h-8 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white';
+    const activeCls = 'h-10 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20';
+    const idleCls = 'h-10 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white';
     $('btnModeAbs').className = mode === 'absolute' ? activeCls : idleCls;
     $('btnModePct').className = mode === 'percentage' ? activeCls : idleCls;
     if (!skipRender) renderAll();

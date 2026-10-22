@@ -695,7 +695,9 @@
       const active = box.querySelector('[aria-pressed="true"]');
       if (active) {
         // Scroll the pill strip itself; a viewport-anchored scroll would also move the page.
-        const target = active.offsetLeft - (box.clientWidth - active.offsetWidth) / 2;
+        const boxRect = box.getBoundingClientRect();
+        const activeRect = active.getBoundingClientRect();
+        const target = Math.max(0, box.scrollLeft + (activeRect.left - boxRect.left) - (box.clientWidth - activeRect.width) / 2);
         box.scrollTo({ left: target, behavior: 'auto' });
       }
     }

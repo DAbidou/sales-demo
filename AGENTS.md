@@ -71,10 +71,10 @@ Adding or editing a year requires updating `YEAR_PLANS` only; the generator, cha
 `state` (module scope, inside the IIFE):
 
 ```js
-{ year, multiplier, mode, vintage, sector, channel, tab, groupBy, search, sortKey, sortDir, page }
+{ year, multiplier, vintage, sector, channel, tab, groupBy, search, sortKey, sortDir, page }
 ```
 
-- `year`: `'ALL' | 2017…2026`; `mode`: `'absolute' | 'percentage'`.
+- `year`: `'ALL' | 2017…2026`.
 - `vintage`, `sector`, `channel`: `null` or a segment key; these are global filters.
 - `tab`: `'all' | 'open' | 'lost' | 'won'` — scopes the ledger only, never the KPIs.
 - `search`, `groupBy`, `sortKey`, `sortDir`, `page`: ledger view only.
@@ -99,9 +99,9 @@ When a segment filter is active, the attainment card is replaced by "Share of Sc
 
 | Selector | Purpose |
 |---|---|
-| `#targetMultiplier`, `#multiplierRange`, `#btnMultUp` / `#btnMultDown`, `.preset` | Scenario controls (input, slider, steppers, presets) |
+| `#targetMultiplier`, `#multiplierRange`, `#btnMultUp` / `#btnMultDown`, `.preset` | The single scenario row in the scope card (input, steppers, slider, presets) |
 | `#yearSelectorContainer` | Year pills (built in `renderYearPills`) |
-| `#btnModeAbs` / `#btnModePct`, `#btnShare`, `#btnReset` | Display mode, link copy, reset |
+| `#btnShare`, `#btnReset` | Link copy, reset |
 | `#trendVerdict`, `#statCagr`, `#statHitRate`, `#statBestWorst`, `#statLost`, `#statLostSub`, `#actionNotes` | Verdict, decision notes, and derived statistics |
 | `#kpiActual`, `#kpiTarget`, `#kpiAttainment`, `#kpiAttainmentBar`, `#kpiWinRate` (+ `…Sub`, `#kpiThirdLabel`, `#kpiThirdHint`) | KPI cards (`—` + guidance text when the scope has no records) |
 | `#benchmarkGrid` | Static benchmark tiles (ours vs B2B figures) |
@@ -126,6 +126,8 @@ When a segment filter is active, the attainment card is replaced by "Share of Sc
 - Keep the dark palette and existing Tailwind conventions; mobile-first classes (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`).
 - Every KPI card keeps a plain-language definition pinned at its foot (`border-t`, `mt-auto`); the third card swaps its definition when filters turn it into a revenue-share metric.
 - Use documented platform APIs only: `navigator.clipboard.writeText` with a `window.prompt` fallback, `:focus-within`, `Element.closest`, `classList`. No `execCommand` or vendor shims.
+- Zero vertical movement is a hard requirement: every control that changes scope, filters or data must leave `window.scrollY` and the clicked element's rect unchanged. `#trendVerdict`, `#kpiActualSub`, `#kpiAttainmentSub`, `#kpiThirdLabel`, `#filterNote` and `#actionNotes` carry measured `min-height` reservations in the `<style>` block; re-measure them whenever that copy or the breakpoints change.
+- Never call `scrollIntoView` in this file — it scrolls the viewport, not the container. Scroll a strip with `element.scrollTo` and rect math instead.
 
 ## 9. Deployment
 

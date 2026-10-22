@@ -50,6 +50,27 @@
   .slice-row.is-active { background: rgba(16,185,129,.12); }
   @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
   input[type=range] { accent-color: #10b981; }
+  /* Reserve the tallest year/segment text so switching year cannot reflow the page.
+     Line counts measured across 320-1440 px; 1.625 = leading-relaxed, 1.375 = leading-snug. */
+  #trendVerdict { min-height: 9.75em; }
+  #kpiActualSub { min-height: 2.75em; }
+  #kpiAttainmentSub { min-height: 5.5em; }
+  #kpiThirdLabel { min-height: 3em; }
+  #filterNote { min-height: 4.125em; }
+  #actionNotes { min-height: 367px; }
+  @media (min-width: 640px) {
+    #trendVerdict { min-height: 4.875em; }
+    #kpiActualSub { min-height: 1.375em; }
+    #kpiAttainmentSub { min-height: 2.75em; }
+    #kpiThirdLabel { min-height: 1.5em; }
+    #filterNote { min-height: 2.75em; }
+    #actionNotes { min-height: 320px; }
+  }
+  @media (min-width: 768px) {
+    #filterNote { min-height: 1.375em; }
+    #actionNotes { min-height: 257px; }
+  }
+  @media (min-width: 1024px) { #trendVerdict { min-height: 3.25em; } }
 </style>
 </head>
 <body class="aurora bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-slate-950 pb-16">
@@ -66,18 +87,6 @@
         <p class="hidden sm:block text-xs text-slate-400 truncate">10-year revenue · customer vintage · channels · funnel conversion</p>
       </div>
     </div>
-
-    <div class="flex items-center gap-1.5 shrink-0">
-      <span class="hidden md:inline text-xs font-semibold uppercase tracking-wider text-emerald-400">Target</span>
-      <button id="btnMultDown" type="button" aria-label="Decrease target multiplier by 0.05"
-        class="ring-focus w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/50 transition">−</button>
-      <input id="targetMultiplier" type="number" value="1.25" step="0.05" min="0.5" max="3" inputmode="decimal"
-        aria-label="Target multiplier factor"
-        class="ring-focus num w-[64px] h-9 bg-slate-900 border border-emerald-500/40 rounded-lg text-center text-sm font-bold text-emerald-300 focus:border-emerald-400" />
-      <button id="btnMultUp" type="button" aria-label="Increase target multiplier by 0.05"
-        class="ring-focus w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/50 transition">+</button>
-      <span class="text-xs text-slate-400 font-bold">x</span>
-    </div>
   </div>
 </header>
 
@@ -91,10 +100,19 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3 items-center border-t border-slate-800 pt-3">
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
         <label for="multiplierRange" class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Multiplier</label>
+        <div class="flex items-center gap-1 shrink-0">
+          <button id="btnMultDown" type="button" aria-label="Decrease target multiplier by 0.05"
+            class="ring-focus w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/50 transition">−</button>
+          <input id="targetMultiplier" type="number" value="1.25" step="0.05" min="0.5" max="3" inputmode="decimal"
+            aria-label="Target multiplier factor"
+            class="ring-focus num w-[64px] h-9 bg-slate-900 border border-emerald-500/40 rounded-lg text-center text-sm font-bold text-emerald-300 focus:border-emerald-400" />
+          <button id="btnMultUp" type="button" aria-label="Increase target multiplier by 0.05"
+            class="ring-focus w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/50 transition">+</button>
+        </div>
         <input id="multiplierRange" type="range" min="0.5" max="3" step="0.05" value="1.25" aria-label="Target multiplier slider"
-          class="ring-focus flex-1 min-w-0 h-2 rounded-full bg-slate-800 appearance-none cursor-pointer" />
+          class="ring-focus order-last w-full sm:order-none sm:flex-1 min-w-0 h-2 rounded-full bg-slate-800 appearance-none cursor-pointer" />
         <span id="multiplierLabel" class="num text-xs font-bold text-emerald-300 w-12 text-right">1.25x</span>
         <div class="hidden sm:flex gap-1" role="group" aria-label="Multiplier presets">
           <button type="button" data-preset="1.1" class="preset seg-btn px-2.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:border-emerald-500/40 hover:text-white transition">1.10x</button>
@@ -104,16 +122,12 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <div class="inline-flex items-center gap-0.5 bg-slate-900 border border-slate-800 rounded-xl p-1" role="group" aria-label="Breakdown value display">
-          <button id="btnModeAbs" type="button" aria-pressed="true" class="h-10 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20">$ Values</button>
-          <button id="btnModePct" type="button" aria-pressed="false" class="h-10 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">% Share</button>
-        </div>
         <button id="btnShare" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Copy link</button>
         <button id="btnReset" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Reset</button>
       </div>
     </div>
 
-    <div id="activeFilters" class="flex flex-wrap items-center gap-1.5 empty:hidden"></div>
+    <div id="activeFilters" class="flex flex-nowrap items-center gap-1.5 overflow-x-auto no-scrollbar min-h-[26px]"></div>
   </section>
 
   <!-- Verdict + micro stats -->
@@ -194,8 +208,8 @@
       </div>
     </div>
     <div class="h-64 sm:h-80 w-full relative"><canvas id="trendChart" role="img" aria-label="Bar chart of annual actual sales against the dynamic target line"></canvas></div>
-    <div id="yearStrip" class="flex flex-wrap gap-1.5" role="group" aria-label="Attainment by year — click to isolate a year"></div>
-    <p id="filterNote" class="text-xs text-slate-500 hidden"></p>
+    <div id="yearStrip" class="flex flex-nowrap gap-1.5 overflow-x-auto no-scrollbar" role="group" aria-label="Attainment by year — click to isolate a year"></div>
+    <p id="filterNote" class="text-xs text-slate-500"></p>
   </section>
 
   <!-- Breakdowns -->
@@ -577,7 +591,7 @@
 
   /* ---------------- state ---------------- */
   const state = {
-    year: 'ALL', multiplier: 1.25, mode: 'absolute',
+    year: 'ALL', multiplier: 1.25,
     vintage: null, sector: null, channel: null,
     tab: 'all', groupBy: '', search: '', sortKey: 'wonValue', sortDir: 'desc', page: 1
   };
@@ -659,7 +673,7 @@
     chips.forEach(([label, clear]) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'ring-focus inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition';
+      b.className = 'ring-focus inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition';
       b.innerHTML = '<span>' + label + '</span><span aria-hidden="true">×</span>';
       b.setAttribute('aria-label', 'Clear filter ' + label);
       b.onclick = () => { clear(); state.page = 1; renderAll(); };
@@ -668,7 +682,7 @@
     if (chips.length) {
       const clearAll = document.createElement('button');
       clearAll.type = 'button';
-      clearAll.className = 'ring-focus text-xs font-semibold px-2 py-1 rounded-full text-slate-400 hover:text-white transition';
+      clearAll.className = 'ring-focus whitespace-nowrap shrink-0 text-xs font-semibold px-2 py-1 rounded-full text-slate-400 hover:text-white transition';
       clearAll.textContent = 'Clear all';
       clearAll.onclick = () => { state.vintage = state.sector = state.channel = null; state.search = ''; $('tableSearch').value = ''; state.page = 1; renderAll(); };
       box.appendChild(clearAll);
@@ -697,7 +711,8 @@
         // Scroll the pill strip itself; a viewport-anchored scroll would also move the page.
         const boxRect = box.getBoundingClientRect();
         const activeRect = active.getBoundingClientRect();
-        const target = Math.max(0, box.scrollLeft + (activeRect.left - boxRect.left) - (box.clientWidth - activeRect.width) / 2);
+        const target = Math.max(0, box.scrollLeft + (activeRect.left - boxRect.left) - (box.clientWidth - activeRect.width) / 2);
+
         box.scrollTo({ left: target, behavior: 'auto' });
       }
     }
@@ -878,7 +893,12 @@
         notes.push({
           tag: 'Concentration',
           text: topAccount[0] + ' alone contributes ' + share.toFixed(1) + '% of won revenue' + (share >= 12 ? ' — a concentration risk.' : '.'),
-          apply: () => { state.search = topAccount[0]; $('tableSearch').value = topAccount[0]; state.page = 1; }
+          apply: () => {
+            state.search = state.search === topAccount[0] ? '' : topAccount[0];
+            $('tableSearch').value = state.search;
+            state.page = 1;
+          },
+          active: () => state.search === topAccount[0]
         });
       }
     }
@@ -892,7 +912,8 @@
         tag: 'Pipeline',
         text: compact(lostValue) + ' of quoted value never closed (' + pct(lostValue, quoteValue).toFixed(0) + '% of quoted value) — ' +
           num.format(quoted.length - won.length) + ' dead quotations.',
-        apply: () => { state.tab = 'lost'; state.page = 1; }
+        apply: () => { state.tab = state.tab === 'lost' ? 'all' : 'lost'; state.page = 1; },
+        active: () => state.tab === 'lost'
       });
     }
 
@@ -902,7 +923,8 @@
       notes.push({
         tag: 'Channel',
         text: CHANNEL_LABEL[CHANNELS[topChannel]] + ' is the largest revenue source at ' + pct(channelTotals[topChannel], wonTotal).toFixed(1) + '% of won revenue.',
-        apply: () => { state.channel = state.channel === CHANNELS[topChannel] ? null : CHANNELS[topChannel]; state.page = 1; }
+        apply: () => { state.channel = state.channel === CHANNELS[topChannel] ? null : CHANNELS[topChannel]; state.page = 1; },
+        active: () => state.channel === CHANNELS[topChannel]
       });
     }
 
@@ -913,7 +935,8 @@
       notes.push({
         tag: 'Plan',
         text: 'FY' + YEAR_PLANS[worst].year + ' was the weakest year at ' + attain[worst].toFixed(1) + '% of plan, and that shortfall lowered the following year’s target.',
-        apply: () => { state.year = state.year === YEAR_PLANS[worst].year ? 'ALL' : YEAR_PLANS[worst].year; state.page = 1; }
+        apply: () => { state.year = state.year === YEAR_PLANS[worst].year ? 'ALL' : YEAR_PLANS[worst].year; state.page = 1; },
+        active: () => state.year === YEAR_PLANS[worst].year
       });
     }
 
@@ -922,10 +945,12 @@
       return;
     }
     notes.slice(0, 5).forEach((n) => {
+      const on = n.active ? n.active() : false;
       const el = document.createElement(n.apply ? 'button' : 'div');
       if (n.apply) {
         el.type = 'button';
-        el.className = 'ring-focus w-full text-left rounded-lg px-2 py-1.5 -mx-2 hover:bg-slate-800/50 transition';
+        el.className = 'ring-focus w-full text-left rounded-lg px-2 py-1.5 -mx-2 hover:bg-slate-800/50 transition' + (on ? ' bg-emerald-500/10' : '');
+        el.setAttribute('aria-pressed', on ? 'true' : 'false');
         el.onclick = () => { n.apply(); renderAll(); };
       }
       el.innerHTML =
@@ -1055,10 +1080,9 @@
 
     const note = $('filterNote');
     if (filterActive()) {
-      note.classList.remove('hidden');
       note.textContent = 'Bars show ' + (scopePrefix.replace(/ · $/, '') || 'the filtered segment') + ' revenue; the target line stays company-wide because plans are set at company level.';
     } else {
-      note.classList.add('hidden');
+      note.textContent = '';
     }
   }
 
@@ -1276,8 +1300,7 @@
           '<span class="truncate text-slate-300">' + (labels ? labels[k] : VINTAGE_LABEL[k] || SECTOR_LABEL[k] || k) + '</span>' +
         '</span>' +
         '<span class="num font-bold text-slate-100 shrink-0">' +
-          (state.mode === 'absolute' ? fmtUSD(v) : share.toFixed(1) + '%') +
-          (state.mode === 'absolute' ? '<span class="ml-1.5 text-xs font-normal text-slate-500">' + share.toFixed(1) + '%</span>' : '<span class="ml-1.5 text-xs font-normal text-slate-500">' + fmtUSD(v) + '</span>') +
+          fmtUSD(v) + '<span class="ml-1.5 text-xs font-normal text-slate-500">' + share.toFixed(1) + '%</span>' +
         '</span>';
       row.onclick = () => toggleSegment(dim, k);
       box.appendChild(row);
@@ -1575,18 +1598,6 @@
     if (!opts.skipRender) renderAll();
   }
 
-  function setMode(mode, skipRender) {
-    state.mode = mode;
-    $('btnModeAbs').setAttribute('aria-pressed', mode === 'absolute' ? 'true' : 'false');
-    $('btnModePct').setAttribute('aria-pressed', mode === 'percentage' ? 'true' : 'false');
-    const activeCls = 'h-10 px-3 rounded-lg text-xs font-semibold transition bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20';
-    const idleCls = 'h-10 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white';
-    $('btnModeAbs').className = mode === 'absolute' ? activeCls : idleCls;
-    $('btnModePct').className = mode === 'percentage' ? activeCls : idleCls;
-    if (!skipRender) renderAll();
-    writeHash();
-  }
-
   function writeHash() {
     const p = new URLSearchParams();
     if (state.year !== 'ALL') p.set('year', state.year);
@@ -1594,7 +1605,6 @@
     if (state.vintage) p.set('v', state.vintage);
     if (state.sector) p.set('s', state.sector);
     if (state.channel) p.set('ch', state.channel);
-    if (state.mode !== 'absolute') p.set('mode', state.mode);
     if (state.tab !== 'all') p.set('tab', state.tab);
     if (state.groupBy) p.set('g', state.groupBy);
     if (state.search) p.set('q', state.search);
@@ -1615,7 +1625,6 @@
     if (VINTAGE.includes(p.get('v'))) state.vintage = p.get('v');
     if (SECTORS.includes(p.get('s'))) state.sector = p.get('s');
     if (CHANNELS.includes(p.get('ch'))) state.channel = p.get('ch');
-    if (p.get('mode') === 'percentage') state.mode = 'percentage';
     if (TABS.some((t) => t[0] === p.get('tab'))) state.tab = p.get('tab');
     if (['vintage', 'cls', 'channel', 'year', 'account'].includes(p.get('g'))) state.groupBy = p.get('g');
     if (p.get('q')) state.search = p.get('q').slice(0, 60);
@@ -1651,8 +1660,6 @@
   $('btnMultUp').onclick = () => applyMultiplier(state.multiplier + 0.05);
   $('btnMultDown').onclick = () => applyMultiplier(state.multiplier - 0.05);
   document.querySelectorAll('.preset').forEach((b) => { b.onclick = () => applyMultiplier(b.dataset.preset); });
-  $('btnModeAbs').onclick = () => setMode('absolute');
-  $('btnModePct').onclick = () => setMode('percentage');
 
   $('tableSearch').addEventListener('input', (e) => {
     state.search = e.target.value.trim();
@@ -1679,12 +1686,11 @@
   $('pageNext').onclick = () => { state.page += 1; renderTable(); writeHash(); };
 
   $('btnReset').onclick = () => {
-    state.year = 'ALL'; state.multiplier = 1.25; state.mode = 'absolute';
+    state.year = 'ALL'; state.multiplier = 1.25;
     state.vintage = state.sector = state.channel = null;
     state.tab = 'all'; state.groupBy = ''; state.search = ''; state.page = 1;
     $('tableSearch').value = '';
     applyMultiplier(1.25);
-    setMode('absolute');
   };
 
   $('btnShare').onclick = async () => {
@@ -1703,7 +1709,6 @@
   /* ---------------- boot ---------------- */
   readHash();
   applyMultiplier(state.multiplier, { skipRender: true });
-  setMode(state.mode, true);
   renderAll();
 
   // expose a tiny read-only probe for smoke tests

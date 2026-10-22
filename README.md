@@ -43,7 +43,7 @@ All figures are in USD. FY2026 is year-to-date (the page is dated October 2026).
 
 - **Attainment** = actual revenue ÷ summed annual targets for the selected scope.
 - **Revenue CAGR** = `(FY2025 ÷ FY2017)^(1/8) − 1`. FY2026 is excluded because the year is incomplete.
-- **Quote win rate** = won deals ÷ quotations issued; the subline also shows the value-weighted rate.
+- **Quote win rate** = won deals ÷ resolved quotations (in-flight quotes excluded); the subline also shows the value-weighted rate.
 - **Pipeline capture** = won revenue ÷ estimated lead value.
 - **Unconverted quotes** = quoted value minus won value (quotations that never closed).
 

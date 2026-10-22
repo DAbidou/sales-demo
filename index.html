@@ -34,7 +34,7 @@
     background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(15,23,42,.78));
     border: 1px solid rgba(148,163,184,.14);
     box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -28px rgba(0,0,0,.9);
-    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    transition: opacity .22s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
   }
   @media (hover:hover) { .card:hover { border-color: rgba(16,185,129,.28); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 24px 48px -30px rgba(16,185,129,.35); } }
   .num { font-variant-numeric: tabular-nums; }
@@ -127,9 +127,9 @@
         <p id="trendVerdict" class="text-[15px] sm:text-base leading-relaxed text-slate-200"></p>
         <div id="actionNotes" class="rounded-xl border border-slate-800 bg-slate-900/50 p-3 space-y-2"></div>
         <dl class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Revenue CAGR</dt><dd id="statCagr" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">2017 → 2025</dd></div>
-          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Years on plan</dt><dd id="statHitRate" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">actual ≥ dynamic target</dd></div>
-          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Best / worst</dt><dd id="statBestWorst" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">attainment extremes</dd></div>
+          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Revenue CAGR</dt><dd id="statCagr" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">8-year compound growth</dd></div>
+          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Years on plan</dt><dd id="statHitRate" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">years at or above plan</dd></div>
+          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Best / worst</dt><dd id="statBestWorst" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">best and weakest year</dd></div>
           <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Unconverted quotes</dt><dd id="statLost" class="num text-xl font-extrabold text-white">—</dd><dd id="statLostSub" class="text-xs text-slate-500">quoted, never closed</dd></div>
         </dl>
       </div>

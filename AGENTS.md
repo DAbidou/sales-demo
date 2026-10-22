@@ -53,7 +53,7 @@ Data integrity is self-checking: `verifyData()` runs at boot and logs any imbala
 
 `BASE_YEAR = 2016` and `BASE_ACTUAL = 1120000` sit outside the array so the first displayed year has a prior-year target without adding an 11th chart bar.
 
-Generation (`buildYear`, `mulberry32` seed `20261022`) creates account records, assigns stages by shuffling, then distributes integer dollar values with `distributeBy` (largest-remainder normalisation). Vintage is allocated over won revenue (`assignVintage`, largest deals first) so the visible split tracks `vintageMix`. Records that never closed are labelled `prospect` and excluded from vintage filters and charts.
+Generation (`buildYear`, `mulberry32` seed `20261022`) creates account records, assigns stages by shuffling, then distributes integer dollar values with `distributeBy` (largest-remainder normalisation). Vintage is allocated over won revenue (`assignVintage`, largest deals first) so the visible split tracks `vintageMix`. Records that never closed are labelled `prospect` and excluded from vintage filters and charts. Each quoted record carries `cycleDays` (channel-based, sector-adjusted), each open lead an `ageDays`, for the median-cycle and sales-cycle KPIs.
 
 ### Invariants
 
@@ -102,9 +102,10 @@ When a segment filter is active, the attainment card is replaced by "Share of Sc
 | `#targetMultiplier`, `#multiplierRange`, `#btnMultUp` / `#btnMultDown`, `.preset` | Scenario controls (input, slider, steppers, presets) |
 | `#yearSelectorContainer` | Year pills (built in `renderYearPills`) |
 | `#btnModeAbs` / `#btnModePct`, `#btnShare`, `#btnReset` | Display mode, link copy, reset |
-| `#activeFilters` | Filter chips with individual clear actions |
-| `#trendVerdict`, `#statCagr`, `#statHitRate`, `#statBestWorst`, `#statLost`, `#statLostSub` | Verdict and derived statistics |
-| `#kpiActual`, `#kpiTarget`, `#kpiAttainment`, `#kpiAttainmentBar`, `#kpiWinRate` (+ `…Sub`, `#kpiThirdLabel`) | KPI cards |
+| `#trendVerdict`, `#statCagr`, `#statHitRate`, `#statBestWorst`, `#statLost`, `#statLostSub`, `#actionNotes` | Verdict, decision notes, and derived statistics |
+| `#kpiActual`, `#kpiTarget`, `#kpiAttainment`, `#kpiAttainmentBar`, `#kpiWinRate` (+ `…Sub`, `#kpiThirdLabel`) | KPI cards (`—` + guidance text when the scope has no records) |
+| `#benchmarkGrid` | Benchmark tiles (ours vs B2B figures; click applies the relevant tab/filter) |
+| `#yearStrip` | Per-year attainment chips (click to isolate the year) |
 | `#trendChart`, `#vintageChart`, `#classificationChart`, `#channelChart` | Canvases |
 | `#vintageList`, `#classificationList`, `#channelList` | Facet rows (buttons that toggle filters) |
 | `#funnelLeads*`, `#funnelQuotes*`, `#funnelSales*`, `#metricLeadToQuote`, `#metricQuoteToClose`, `#metricFunnelYield` | Funnel stages |

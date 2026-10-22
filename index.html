@@ -121,6 +121,7 @@
       <span class="mt-1 w-1.5 min-h-8 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-teal-500 shrink-0" aria-hidden="true"></span>
       <div class="min-w-0 space-y-3 w-full">
         <p id="trendVerdict" class="text-[15px] sm:text-base leading-relaxed text-slate-200"></p>
+        <div id="actionNotes" class="rounded-xl border border-slate-800 bg-slate-900/50 p-3 space-y-2"></div>
         <dl class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Revenue CAGR</dt><dd id="statCagr" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">2017 → 2025</dd></div>
           <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Years on plan</dt><dd id="statHitRate" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">actual ≥ dynamic target</dd></div>
@@ -133,29 +134,46 @@
 
   <!-- KPIs -->
   <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-    <div class="card rounded-2xl p-3.5 sm:p-5">
-      <span class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Actual Sales</span>
-      <div id="kpiActual" class="num text-[27px] sm:text-3xl font-extrabold text-white mt-1">—</div>
-      <p id="kpiActualSub" class="text-xs text-slate-500 mt-1 leading-snug">—</p>
+    <div class="card rounded-2xl p-4 sm:p-5 flex flex-col min-h-[132px]">
+      <span class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Actual sales
+      </span>
+      <div id="kpiActual" class="num text-[28px] sm:text-[32px] font-extrabold leading-none text-white mt-2">—</div>
+      <p id="kpiActualSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
     </div>
-    <div class="card rounded-2xl p-3.5 sm:p-5">
-      <span class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Dynamic Target</span>
-      <div id="kpiTarget" class="num text-[27px] sm:text-3xl font-extrabold text-emerald-400 mt-1">—</div>
-      <p id="kpiTargetSub" class="text-xs text-slate-500 mt-1 leading-snug">—</p>
+    <div class="card rounded-2xl p-4 sm:p-5 flex flex-col min-h-[132px]">
+      <span class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Dynamic target
+      </span>
+      <div id="kpiTarget" class="num text-[28px] sm:text-[32px] font-extrabold leading-none text-amber-400 mt-2">—</div>
+      <p id="kpiTargetSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
     </div>
-    <div class="card rounded-2xl p-3.5 sm:p-5">
-      <span id="kpiThirdLabel" class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Attainment</span>
-      <div id="kpiAttainment" class="num text-[27px] sm:text-3xl font-extrabold text-teal-300 mt-1">—</div>
-      <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+    <div class="card rounded-2xl p-4 sm:p-5 flex flex-col min-h-[132px]">
+      <span class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span><span id="kpiThirdLabel">Attainment</span>
+      </span>
+      <div id="kpiAttainment" class="num text-[28px] sm:text-[32px] font-extrabold leading-none text-teal-300 mt-2">—</div>
+      <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
         <div id="kpiAttainmentBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-0 transition-all duration-500"></div>
       </div>
-      <p id="kpiAttainmentSub" class="text-xs text-slate-500 mt-1.5 leading-snug">—</p>
+      <p id="kpiAttainmentSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
     </div>
-    <div class="card rounded-2xl p-3.5 sm:p-5">
-      <span class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Quote Win Rate</span>
-      <div id="kpiWinRate" class="num text-[27px] sm:text-3xl font-extrabold text-cyan-400 mt-1">—</div>
-      <p id="kpiWinRateSub" class="text-xs text-slate-500 mt-1 leading-snug">—</p>
+    <div class="card rounded-2xl p-4 sm:p-5 flex flex-col min-h-[132px]">
+      <span class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>Quote win rate
+      </span>
+      <div id="kpiWinRate" class="num text-[28px] sm:text-[32px] font-extrabold leading-none text-cyan-400 mt-2">—</div>
+      <p id="kpiWinRateSub" class="text-xs text-slate-500 mt-auto pt-2 leading-snug">—</p>
     </div>
+  </section>
+
+  <!-- Sales KPI benchmark board -->
+  <section class="card rounded-2xl p-4 sm:p-5">
+    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+      <h3 class="text-base font-bold text-white">Sales KPIs vs B2B benchmarks</h3>
+      <span class="text-[11px] text-slate-500">Directional industry benchmarks · AMW® Sales Pipeline Statistics 2026</span>
+    </div>
+    <div id="benchmarkGrid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3"></div>
   </section>
 
   <!-- Trend -->
@@ -171,6 +189,7 @@
       </div>
     </div>
     <div class="h-64 sm:h-80 w-full relative"><canvas id="trendChart" role="img" aria-label="Bar chart of annual actual sales against the dynamic target line"></canvas></div>
+    <div id="yearStrip" class="flex flex-wrap gap-1.5" role="group" aria-label="Attainment by year — click to isolate a year"></div>
     <p id="filterNote" class="text-xs text-slate-500 hidden"></p>
   </section>
 
@@ -374,6 +393,7 @@
     2023: [38, 19, 19, 16, 8],  2024: [41, 20, 20, 13, 6],  2025: [39, 22, 21, 11, 7],
     2026: [42, 21, 20, 10, 7]
   };
+  const CYCLE_BASE = { renewals: 12, expansion: 30, webSocial: 25, outbound: 45, partners: 60 };
   const SECTOR_ACADEMIC_SHARE = { 2017: 32, 2018: 29, 2019: 26, 2020: 34, 2021: 30, 2022: 24, 2023: 28, 2024: 30, 2025: 27, 2026: 31 };
 
   /* ---------------- synthetic account + pipeline records ---------------- */
@@ -465,7 +485,8 @@
       yearRecords.push({
         id: recId++, year: plan.year, account: acct.name, accountId: acct.id, accountWeight: acct.weight, sector: acct.sector,
         channel: channel, vintage: null, stage: isWon ? 'won' : (isQuoted ? 'lost' : 'open'),
-        leadValue: 0, quoteValue: 0, wonValue: 0
+        leadValue: 0, quoteValue: 0, wonValue: 0,
+        cycleDays: 0, ageDays: 0
       });
       acct.lastYear = plan.year;
     }
@@ -489,7 +510,15 @@
     openRecs.forEach((r, i) => { r.leadValue = openVals[i]; });
 
     assignVintage(yearRecords.filter((r) => r.stage === 'won'), plan.vintageMix);
-    yearRecords.forEach((r) => { if (r.stage !== 'won') r.vintage = 'prospect'; });
+    yearRecords.forEach((r) => {
+      if (r.stage !== 'won') r.vintage = 'prospect';
+      if (r.stage === 'open') {
+        r.ageDays = Math.round(5 + rng() * 80); // prospects age in the pipeline
+      } else {
+        const sectorFactor = r.sector === 'academic' ? 1.35 : 1;
+        r.cycleDays = Math.max(7, Math.round(CYCLE_BASE[r.channel] * (0.6 + rng() * 1.3) * sectorFactor));
+      }
+    });
 
     records.push(...yearRecords);
   }
@@ -689,10 +718,222 @@
     requestAnimationFrame(frame);
   }
 
+  const BENCH = {
+    winRate: 21, winRateTop: 47, leadConv: 13, lossRate: 79,
+    acvSmb: 48000, acvMid: 125000, acvEnt: 400000, cycle: 84
+  };
+
+  function median(arr) {
+    if (!arr.length) return 0;
+    const s = arr.slice().sort((a, b) => a - b);
+    const m = s.length >> 1;
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
+
+  function benchTile(opts) {
+    const box = document.createElement('button');
+    box.type = 'button';
+    const tone = opts.tone === 'good' ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+      : opts.tone === 'warn' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10'
+        : 'text-slate-300 border-slate-800 bg-slate-900/60';
+    box.className = 'ring-focus text-left rounded-xl border p-3 transition hover:border-emerald-500/40 flex flex-col gap-1 ' + tone;
+    box.innerHTML =
+      '<span class="text-[11px] font-bold uppercase tracking-wider opacity-80">' + opts.label + '</span>' +
+      '<span class="num text-xl font-extrabold leading-none">' + opts.value + '</span>' +
+      '<span class="text-xs opacity-80 leading-snug">' + opts.detail + '</span>' +
+      '<span class="text-[11px] font-bold uppercase tracking-wider opacity-80">' + opts.status + '</span>';
+    if (opts.apply) box.onclick = () => { opts.apply(); renderAll(); };
+    return box;
+  }
+
+  function renderBenchmarks(rows) {
+    const box = $('benchmarkGrid');
+    box.innerHTML = '';
+    const t = totals(rows);
+    const won = rows.filter((r) => r.stage === 'won');
+    const lost = rows.filter((r) => r.stage === 'lost');
+    const open = rows.filter((r) => r.stage === 'open');
+    const targets = targetsFor(state.multiplier);
+    const plan = state.year === 'ALL' ? targets.reduce((a, b) => a + b, 0) : targets[YEAR_INDEX.get(state.year)];
+
+    const winRate = pct(t.wins, t.quoted);
+    const lossRate = pct(Math.max(0, t.quoteValue - t.wonValue), t.quoteValue);
+    const leadConv = pct(t.wins, t.leads);
+    const asp = t.wins ? t.wonValue / t.wins : 0;
+    const cycle = median(won.map((r) => r.cycleDays));
+    const openPipe = open.reduce((a, r) => a + r.leadValue, 0);
+    const coverage = plan > 0 ? openPipe / plan : 0;
+
+    box.appendChild(benchTile({
+      label: 'Win rate',
+      value: winRate.toFixed(1) + '%',
+      detail: 'quotes closed / quotes issued',
+      status: winRate >= BENCH.winRateTop ? 'High-performing range (47%+)' : winRate >= BENCH.winRate ? 'Above 21% avg' : 'Below 21% avg',
+      tone: winRate >= BENCH.winRate ? 'good' : 'warn',
+      apply: () => { state.tab = 'won'; state.page = 1; }
+    }));
+    box.appendChild(benchTile({
+      label: 'Deal loss rate',
+      value: won.length ? lossRate.toFixed(1) + '%' : '—',
+      detail: 'quoted value never closed',
+      status: !won.length ? 'No won deals in scope' : lossRate <= BENCH.lossRate ? 'Better than 79% avg' : 'Worse than 79% avg',
+      tone: !won.length ? 'warn' : lossRate <= BENCH.lossRate ? 'good' : 'warn',
+      apply: () => { state.tab = 'lost'; state.page = 1; }
+    }));
+    box.appendChild(benchTile({
+      label: 'Lead → close',
+      value: leadConv.toFixed(1) + '%',
+      detail: 'won deals / leads captured',
+      status: leadConv >= BENCH.leadConv ? 'Above 13% avg' : 'Below 13% avg',
+      tone: leadConv >= BENCH.leadConv ? 'good' : 'warn',
+      apply: () => { state.tab = 'all'; state.page = 1; }
+    }));
+    box.appendChild(benchTile({
+      label: 'Avg deal size',
+      value: compact(asp),
+      detail: 'mid-market median $125k · enterprise $400k+',
+      status: asp >= BENCH.acvEnt ? 'Enterprise band' : asp >= BENCH.acvMid ? 'At/above mid-market' : asp >= BENCH.acvSmb ? 'SMB band' : 'Below SMB median',
+      tone: asp >= BENCH.acvMid ? 'good' : 'warn',
+      apply: () => { state.tab = 'won'; state.page = 1; }
+    }));
+    box.appendChild(benchTile({
+      label: 'Sales cycle',
+      value: won.length ? Math.round(cycle) + ' d' : '—',
+      detail: 'median days lead → close',
+      status: !won.length ? 'No won deals in scope' : cycle <= BENCH.cycle ? 'Faster than 84 d avg' : 'Slower than 84 d avg',
+      tone: !won.length ? 'warn' : cycle <= BENCH.cycle ? 'good' : 'warn',
+      apply: () => { state.tab = 'won'; state.page = 1; }
+    }));
+    box.appendChild(benchTile({
+      label: 'Pipeline ÷ plan',
+      value: coverage.toFixed(1) + '×',
+      detail: 'open pipeline vs dynamic plan',
+      status: !rows.length ? 'No records in scope' : coverage >= 3 && coverage <= 5 ? 'Within 3–5× band' : 'Outside 3–5× band',
+      tone: !rows.length ? 'warn' : coverage >= 3 && coverage <= 5 ? 'good' : 'warn',
+      apply: () => { state.tab = 'all'; state.page = 1; }
+    }));
+  }
+
+  function renderYearStrip() {
+    const box = $('yearStrip');
+    box.innerHTML = '';
+    const targets = targetsFor(state.multiplier);
+    YEAR_PLANS.forEach((p, i) => {
+      const att = pct(p.actual, targets[i]);
+      const active = state.year === p.year;
+      const tone = att >= 100 ? 'emerald' : att >= 90 ? 'amber' : 'rose';
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+      b.title = 'FY' + p.year + ': ' + money(p.actual) + ' against a plan of ' + money(targets[i]);
+      b.className = 'ring-focus px-2.5 h-8 rounded-lg text-xs font-bold num border transition ' +
+        (active
+          ? 'bg-slate-100 text-slate-900 border-slate-100'
+          : tone === 'emerald'
+            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25 hover:border-emerald-400/60'
+            : tone === 'amber'
+              ? 'bg-amber-500/10 text-amber-300 border-amber-500/25 hover:border-amber-400/60'
+              : 'bg-rose-500/10 text-rose-300 border-rose-500/25 hover:border-rose-400/60');
+      b.innerHTML = p.year + ' <span class="opacity-70">' + att.toFixed(0) + '%</span>';
+      b.onclick = () => selectYear(p.year);
+      box.appendChild(b);
+    });
+  }
+
+  function renderActionNotes(rows) {
+    const box = $('actionNotes');
+    box.innerHTML = '';
+    const won = rows.filter((r) => r.stage === 'won');
+    const notes = [];
+
+    const byAccount = new Map();
+    won.forEach((r) => byAccount.set(r.account, (byAccount.get(r.account) || 0) + r.wonValue));
+    const wonTotal = won.reduce((a, r) => a + r.wonValue, 0);
+    const topAccount = Array.from(byAccount.entries()).sort((a, b) => b[1] - a[1])[0];
+    if (topAccount && wonTotal > 0) {
+      const share = pct(topAccount[1], wonTotal);
+      if (share >= 5) {
+        notes.push({
+          tag: 'Concentration',
+          text: topAccount[0] + ' alone contributes ' + share.toFixed(1) + '% of won revenue' + (share >= 12 ? ' — a concentration risk.' : '.'),
+          apply: () => { state.search = topAccount[0]; $('tableSearch').value = topAccount[0]; state.page = 1; }
+        });
+      }
+    }
+
+    const quoted = rows.filter((r) => r.stage !== 'open');
+    const quoteValue = quoted.reduce((a, r) => a + r.quoteValue, 0);
+    const wonValue = won.reduce((a, r) => a + r.wonValue, 0);
+    const lostValue = quoteValue - wonValue;
+    if (lostValue > 0 && quoteValue > 0) {
+      notes.push({
+        tag: 'Pipeline',
+        text: compact(lostValue) + ' of quoted value never closed (' + pct(lostValue, quoteValue).toFixed(0) + '% of quoted value) — ' +
+          num.format(quoted.length - won.length) + ' dead quotations.',
+        apply: () => { state.tab = 'lost'; state.page = 1; }
+      });
+    }
+
+    const channelTotals = CHANNELS.map((k) => rows.filter((r) => r.stage === 'won' && r.channel === k).reduce((a, r) => a + r.wonValue, 0));
+    const topChannel = channelTotals.indexOf(Math.max.apply(null, channelTotals));
+    if (wonTotal > 0 && channelTotals[topChannel] > 0) {
+      notes.push({
+        tag: 'Channel',
+        text: CHANNEL_LABEL[CHANNELS[topChannel]] + ' is the largest revenue source at ' + pct(channelTotals[topChannel], wonTotal).toFixed(1) + '% of won revenue.',
+        apply: () => { state.channel = state.channel === CHANNELS[topChannel] ? null : CHANNELS[topChannel]; state.page = 1; }
+      });
+    }
+
+    const targets = targetsFor(state.multiplier);
+    const attain = YEAR_PLANS.map((p, i) => pct(p.actual, targets[i]));
+    const worst = attain.indexOf(Math.min.apply(null, attain));
+    if (won.length) {
+      notes.push({
+        tag: 'Plan',
+        text: 'FY' + YEAR_PLANS[worst].year + ' was the weakest year at ' + attain[worst].toFixed(1) + '% of plan, and that shortfall lowered the following year’s target.',
+        apply: () => { state.year = state.year === YEAR_PLANS[worst].year ? 'ALL' : YEAR_PLANS[worst].year; state.page = 1; }
+      });
+    }
+
+    if (!notes.length) {
+      box.innerHTML = '<p class="text-xs sm:text-[13px] text-slate-500">No records in this scope — widen the year scope or clear a segment filter.</p>';
+      return;
+    }
+    notes.slice(0, 5).forEach((n) => {
+      const el = document.createElement(n.apply ? 'button' : 'div');
+      if (n.apply) {
+        el.type = 'button';
+        el.className = 'ring-focus w-full text-left rounded-lg px-2 py-1.5 -mx-2 hover:bg-slate-800/50 transition';
+        el.onclick = () => { n.apply(); renderAll(); };
+      }
+      el.innerHTML =
+        '<span class="block text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-0.5">' + n.tag + '</span>' +
+        '<span class="block text-xs sm:text-[13px] leading-relaxed text-slate-300">' + n.text +
+        (n.apply ? ' <span class="text-emerald-400" aria-hidden="true">→</span>' : '') + '</span>';
+      box.appendChild(el);
+    });
+  }
+
   function renderKPIs(rows, scope) {
     const t = totals(rows);
     const targets = targetsFor(state.multiplier);
     const yearIdx = state.year === 'ALL' ? null : YEAR_INDEX.get(state.year);
+
+    if (!rows.length) {
+      $('kpiActual').textContent = '—';
+      $('kpiActual').title = '';
+      $('kpiActualSub').textContent = 'No records in this scope';
+      $('kpiTarget').textContent = '—';
+      $('kpiTarget').title = '';
+      $('kpiTargetSub').textContent = 'Company plan';
+      $('kpiAttainment').textContent = '—';
+      $('kpiAttainmentBar').style.width = '0%';
+      $('kpiAttainmentSub').textContent = 'Nothing to compare';
+      $('kpiWinRate').textContent = '—';
+      $('kpiWinRateSub').textContent = 'No quotes in scope';
+      $('trendVerdict').textContent = 'This filter combination has no records. Widen the year scope or clear a segment filter to see numbers again.';
+      return;
+    }
 
     const actual = t.wonValue;
     $('kpiActual').textContent = compact(actual);
@@ -727,7 +968,7 @@
       const share = pct(actual, allWon);
       thirdLabel.textContent = 'Share of Scope Revenue';
       third.textContent = share.toFixed(1) + '%';
-      third.className = 'num text-[27px] sm:text-3xl font-extrabold mt-1 ' + (share >= 50 ? 'text-emerald-400' : 'text-cyan-300');
+      third.className = 'num text-[28px] sm:text-[32px] font-extrabold leading-none mt-2 ' + (share >= 50 ? 'text-emerald-400' : 'text-cyan-300');
       thirdBar.style.width = Math.min(100, share) + '%';
       thirdBar.className = 'h-full transition-all duration-500 bg-gradient-to-r ' + (share >= 50 ? 'from-emerald-500 to-teal-400' : 'from-cyan-500 to-sky-400');
       thirdSub.textContent = compact(actual) + ' of ' + compact(allWon) + ' in ' + periodLabel();
@@ -736,7 +977,7 @@
       thirdLabel.textContent = 'Attainment vs Plan';
       third.textContent = attain.toFixed(1) + '%';
       const good = attain >= 100, mid = attain >= 90;
-      third.className = 'num text-[27px] sm:text-3xl font-extrabold mt-1 ' + (good ? 'text-emerald-400' : mid ? 'text-amber-400' : 'text-rose-400');
+      third.className = 'num text-[28px] sm:text-[32px] font-extrabold leading-none mt-2 ' + (good ? 'text-emerald-400' : mid ? 'text-amber-400' : 'text-rose-400');
       thirdBar.style.width = Math.min(100, attain) + '%';
       thirdBar.className = 'h-full transition-all duration-500 bg-gradient-to-r ' + (good ? 'from-emerald-500 to-teal-400' : mid ? 'from-amber-500 to-yellow-400' : 'from-rose-500 to-orange-400');
       thirdSub.textContent = (good ? 'On or above plan' : mid ? 'Short of plan' : 'Below plan') +
@@ -1355,7 +1596,10 @@
     const rows = subset();
     renderChips();
     renderYearPills(scrollPills);
+    renderYearStrip();
     renderKPIs(rows);
+    renderActionNotes(rows);
+    renderBenchmarks(rows);
     renderTrend();
     renderBreakdowns();
     renderFunnel(rows);

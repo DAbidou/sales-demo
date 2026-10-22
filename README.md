@@ -45,9 +45,9 @@ All figures are in USD. FY2026 is year-to-date (the page is dated October 2026).
 - **Pipeline capture** = won revenue ÷ estimated lead value.
 - **Unconverted quotes** = quoted value minus won value (quotations that never closed).
 
-## Data model
+The headline numbers are benchmarked against directional B2B figures (win rate 21%, lead-to-close 13%, mid-market ACV $125k, 84-day sales cycle, 3–5x pipeline coverage): each benchmark tile compares our value, states the source benchmark, and links to the underlying view when clicked.
 
-All records are generated at load by a deterministic PRNG (`mulberry32`, fixed seed) from a compact annual plan. Nothing is fetched. The plan fixes each year's actual revenue, lead/quote/win counts, channel weights, vintage mix, new-logo rate, and win-back rate; individual records (account, sector, channel, vintage, lead value, quote value, won value) are derived from it. Vintage is allocated over won revenue so the displayed split matches the plan, and records that never closed are labelled **Prospect** — they have no customer relationship yet.
+All records are generated at load by a deterministic PRNG (`mulberry32`, fixed seed) from a compact annual plan. Nothing is fetched. The plan fixes each year's actual revenue, lead/quote/win counts, channel weights, vintage mix, new-logo rate, and win-back rate; individual records (account, sector, channel, vintage, lead value, quote value, won value, sales-cycle days, lead age) are derived from it. Vintage is allocated over won revenue so the displayed split matches the plan, and records that never closed are labelled **Prospect** — they have no customer relationship yet.
 
 Consistency is enforced and checked at runtime:
 

@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sales Performance & Target Engine — 10-Year Analytics</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E" />
+<meta name="description" content="Interactive 10-year revenue, target-attainment, segment and pipeline analytics dashboard. Filter by year, customer vintage, sector and channel." />
+<meta name="theme-color" content="#020617" />
+<meta property="og:title" content="Sales Performance & Target Engine" />
+<meta property="og:description" content="10 years of revenue, dynamic targets, customer vintage, channels and funnel conversion — fully interactive." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://dabidou.github.io/sales-demo/" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: { colors: { brand: { 400: '#34d399', 500: '#10b981', 600: '#059669' } } } }
+  }
+</script>
+<style>
+  :root { color-scheme: dark; }
+  html { scroll-behavior: smooth; }
+  body { -webkit-tap-highlight-color: transparent; }
+  .aurora::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(60rem 40rem at 12% -10%, rgba(16,185,129,.14), transparent 60%),
+      radial-gradient(50rem 35rem at 92% 0%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(45rem 35rem at 50% 110%, rgba(139,92,246,.10), transparent 60%);
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(15,23,42,.78));
+    border: 1px solid rgba(148,163,184,.14);
+    box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -28px rgba(0,0,0,.9);
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  @media (hover:hover) { .card:hover { border-color: rgba(16,185,129,.28); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 24px 48px -30px rgba(16,185,129,.35); } }
+  .num { font-variant-numeric: tabular-nums; }
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .pill { min-height: 44px; white-space: nowrap; }
+  .seg-btn { min-height: 40px; }
+  .ring-focus:focus-visible { outline: 2px solid #34d399; outline-offset: 2px; }
+  .fade-in { animation: fade .28s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } html { scroll-behavior: auto; } }
+  th { font-weight: 600; }
+  .slice-row.is-active { background: rgba(16,185,129,.12); }
+  input[type=range] { accent-color: #10b981; }
+</style>
+</head>
+<body class="aurora bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-slate-950 pb-16">
+
+<header class="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md">
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center gap-3">
+    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+      <div class="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 grid place-items-center text-slate-950 font-black shadow-lg shadow-emerald-500/25">📈</div>
+      <div class="min-w-0">
+        <h1 class="text-[15px] sm:text-lg font-bold tracking-tight text-white truncate">
+          <span class="sm:hidden">Sales &amp; Target Engine</span>
+          <span class="hidden sm:inline">Sales Performance &amp; Target Engine</span>
+        </h1>
+        <p class="hidden sm:block text-xs text-slate-400 truncate">10-year revenue · customer vintage · channels · funnel conversion</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.5 shrink-0">
+      <span class="hidden md:inline text-xs font-semibold uppercase tracking-wider text-emerald-400">Target</span>
+      <button id="btnMultDown" type="button" aria-label="Decrease target multiplier by 0.05"
+        class="ring-focus w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/50 transition">−</button>
+      <input id="targetMultiplier" type="number" value="1.25" step="0.05" min="0.5" max="3" inputmode="decimal"
+        aria-label="Target multiplier factor"
+        class="ring-focus num w-[64px] h-9 bg-slate-900 border border-emerald-500/40 rounded-lg text-center text-sm font-bold text-emerald-300 focus:border-emerald-400" />
+      <button id="btnMultUp" type="button" aria-label="Increase target multiplier by 0.05"
+        class="ring-focus w-9 h-9 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/50 transition">+</button>
+      <span class="text-xs text-slate-400 font-bold">x</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-3 sm:px-6 pt-5 space-y-5">
+
+  <!-- Scope + scenario controls -->
+  <section class="card rounded-2xl p-3 sm:p-4 space-y-3">
+    <div class="flex items-center gap-3">
+      <span class="hidden sm:inline text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Time scope</span>
+      <div id="yearSelectorContainer" class="flex flex-nowrap gap-1.5 overflow-x-auto no-scrollbar overscroll-x-contain py-0.5 -mx-1 px-1" role="group" aria-label="Select reporting year"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3 items-center border-t border-slate-800 pt-3">
+      <div class="flex items-center gap-3">
+        <label for="multiplierRange" class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Multiplier</label>
+        <input id="multiplierRange" type="range" min="0.5" max="3" step="0.05" value="1.25" aria-label="Target multiplier slider"
+          class="ring-focus flex-1 min-w-0 h-2 rounded-full bg-slate-800 appearance-none cursor-pointer" />
+        <span id="multiplierLabel" class="num text-xs font-bold text-emerald-300 w-12 text-right">1.25x</span>
+        <div class="hidden sm:flex gap-1" role="group" aria-label="Multiplier presets">
+          <button type="button" data-preset="1.1" class="preset seg-btn px-2.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:border-emerald-500/40 hover:text-white transition">1.10x</button>
+          <button type="button" data-preset="1.25" class="preset seg-btn px-2.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:border-emerald-500/40 hover:text-white transition">1.25x</button>
+          <button type="button" data-preset="1.5" class="preset seg-btn px-2.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:border-emerald-500/40 hover:text-white transition">1.50x</button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-1 flex items-center text-xs" role="group" aria-label="Value display mode">
+          <button id="btnModeAbs" type="button" aria-pressed="true" class="seg-btn px-3 rounded-lg font-bold bg-emerald-500 text-slate-950 transition">$ Values</button>
+          <button id="btnModePct" type="button" aria-pressed="false" class="seg-btn px-3 rounded-lg font-medium text-slate-400 hover:text-white transition">% Share</button>
+        </div>
+        <button id="btnShare" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Copy link</button>
+        <button id="btnReset" type="button" class="ring-focus seg-btn px-3 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500/40 transition">Reset</button>
+      </div>
+    </div>
+
+    <div id="activeFilters" class="flex flex-wrap items-center gap-1.5 empty:hidden"></div>
+  </section>
+
+  <!-- Verdict + micro stats -->
+  <section class="card rounded-2xl p-4 sm:p-5">
+    <div class="flex items-start gap-3">
+      <span class="mt-1 w-1.5 min-h-8 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-teal-500 shrink-0" aria-hidden="true"></span>
+      <div class="min-w-0 space-y-3 w-full">
+        <p id="trendVerdict" class="text-[15px] sm:text-base leading-relaxed text-slate-200"></p>
+        <dl class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Revenue CAGR</dt><dd id="statCagr" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">2017 → 2025</dd></div>
+          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Years on plan</dt><dd id="statHitRate" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">actual ≥ dynamic target</dd></div>
+          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Best / worst</dt><dd id="statBestWorst" class="num text-xl font-extrabold text-white">—</dd><dd class="text-xs text-slate-500">attainment extremes</dd></div>
+          <div><dt class="text-xs font-bold uppercase tracking-wider text-slate-500">Unconverted quotes</dt><dd id="statLost" class="num text-xl font-extrabold text-white">—</dd><dd id="statLostSub" class="text-xs text-slate-500">quoted, never closed</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPIs -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="card rounded-2xl p-3.5 sm:p-5">
+      <span class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Actual Sales</span>
+      <div id="kpiActual" class="num text-[27px] sm:text-3xl font-extrabold text-white mt-1">—</div>
+      <p id="kpiActualSub" class="text-xs text-slate-500 mt-1 leading-snug">—</p>
+    </div>
+    <div class="card rounded-2xl p-3.5 sm:p-5">
+      <span class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Dynamic Target</span>
+      <div id="kpiTarget" class="num text-[27px] sm:text-3xl font-extrabold text-emerald-400 mt-1">—</div>
+      <p id="kpiTargetSub" class="text-xs text-slate-500 mt-1 leading-snug">—</p>
+    </div>
+    <div class="card rounded-2xl p-3.5 sm:p-5">
+      <span id="kpiThirdLabel" class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Attainment</span>
+      <div id="kpiAttainment" class="num text-[27px] sm:text-3xl font-extrabold text-teal-300 mt-1">—</div>
+      <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div id="kpiAttainmentBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-0 transition-all duration-500"></div>
+      </div>
+      <p id="kpiAttainmentSub" class="text-xs text-slate-500 mt-1.5 leading-snug">—</p>
+    </div>
+    <div class="card rounded-2xl p-3.5 sm:p-5">
+      <span class="text-xs sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Quote Win Rate</span>
+      <div id="kpiWinRate" class="num text-[27px] sm:text-3xl font-extrabold text-cyan-400 mt-1">—</div>
+      <p id="kpiWinRateSub" class="text-xs text-slate-500 mt-1 leading-snug">—</p>
+    </div>
+  </section>
+
+  <!-- Trend -->
+  <section class="card rounded-3xl p-4 sm:p-6 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+      <div>
+        <h2 class="text-xl font-bold text-white">Revenue vs Dynamic Target</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Target<sub>year</sub> = prior-year actual × <span class="text-emerald-400 font-mono font-bold">multiplier</span> · click a year to isolate it</p>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-slate-400">
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Actual</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-[3px] bg-amber-400 inline-block"></span> Target</span>
+      </div>
+    </div>
+    <div class="h-64 sm:h-80 w-full relative"><canvas id="trendChart" role="img" aria-label="Bar chart of annual actual sales against the dynamic target line"></canvas></div>
+    <p id="filterNote" class="text-xs text-slate-500 hidden"></p>
+  </section>
+
+  <!-- Breakdowns -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="card rounded-3xl p-4 sm:p-5 space-y-3">
+      <div>
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="font-bold text-white text-base">Customer Vintage</h3>
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Tenure</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">New vs retained vs reactivated — tap to isolate</p>
+      </div>
+      <div class="h-44 sm:h-52 relative"><canvas id="vintageChart" role="img" aria-label="Doughnut chart of revenue by customer vintage"></canvas></div>
+      <div class="space-y-1 text-xs border-t border-slate-800/80 pt-3" id="vintageList"></div>
+    </div>
+
+    <div class="card rounded-3xl p-4 sm:p-5 space-y-3">
+      <div>
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="font-bold text-white text-base">Client Sector</h3>
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Sector</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Commercial enterprise vs academic &amp; research</p>
+      </div>
+      <div class="h-44 sm:h-52 relative"><canvas id="classificationChart" role="img" aria-label="Doughnut chart of revenue by client sector"></canvas></div>
+      <div class="space-y-1 text-xs border-t border-slate-800/80 pt-3" id="classificationList"></div>
+    </div>
+
+    <div class="card rounded-3xl p-4 sm:p-5 space-y-3">
+      <div>
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="font-bold text-white text-base">Channel / Lead Origin</h3>
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Pipeline</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Where won revenue actually originates</p>
+      </div>
+      <div class="h-44 sm:h-52 relative"><canvas id="channelChart" role="img" aria-label="Bar chart of revenue by acquisition channel"></canvas></div>
+      <div class="space-y-1 text-xs border-t border-slate-800/80 pt-3" id="channelList"></div>
+    </div>
+  </section>
+
+  <!-- Funnel -->
+  <section class="card rounded-3xl p-4 sm:p-6 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+      <div>
+        <h3 class="text-xl font-bold text-white">Full Funnel Velocity</h3>
+        <p class="text-xs sm:text-sm text-slate-400">Leads → quotes → closed revenue, with the conversion cost of every stage</p>
+      </div>
+      <span id="funnelScopeBadge" class="self-start text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">—</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5 gap-2">
+          <span class="font-semibold uppercase tracking-wider text-cyan-400">1 · Demand</span>
+          <span id="funnelLeadsCount" class="num font-mono bg-slate-800 px-2 py-0.5 rounded text-white">—</span>
+        </div>
+        <h4 class="text-base font-bold text-white">Leads captured</h4>
+        <div id="funnelLeadsValue" class="num text-2xl font-black text-cyan-300 mt-1.5">—</div>
+        <p class="text-xs text-slate-500 mt-0.5">Estimated pipeline value</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex justify-between text-xs text-slate-400 gap-2"><span>Lead → quote</span><span id="metricLeadToQuote" class="font-bold text-slate-200">—</span></div>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5 gap-2">
+          <span class="font-semibold uppercase tracking-wider text-amber-400">2 · Evaluation</span>
+          <span id="funnelQuotesCount" class="num font-mono bg-slate-800 px-2 py-0.5 rounded text-white">—</span>
+        </div>
+        <h4 class="text-base font-bold text-white">Quotations issued</h4>
+        <div id="funnelQuotesValue" class="num text-2xl font-black text-amber-300 mt-1.5">—</div>
+        <p id="funnelQuotesSub" class="text-xs text-slate-500 mt-0.5">—</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex justify-between text-xs text-slate-400 gap-2"><span>Quote → win</span><span id="metricQuoteToClose" class="font-bold text-slate-200">—</span></div>
+      </div>
+      <div class="bg-slate-900/60 border border-emerald-500/40 p-4 rounded-2xl">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5 gap-2">
+          <span class="font-semibold uppercase tracking-wider text-emerald-400">3 · Revenue</span>
+          <span id="funnelSalesCount" class="num font-mono bg-emerald-950/70 border border-emerald-500/30 px-2 py-0.5 rounded text-emerald-300">—</span>
+        </div>
+        <h4 class="text-base font-bold text-white">Deals closed</h4>
+        <div id="funnelSalesValue" class="num text-2xl font-black text-emerald-400 mt-1.5">—</div>
+        <p id="funnelSalesSub" class="text-xs text-slate-400 mt-0.5">—</p>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex justify-between text-xs text-slate-400 gap-2"><span>Pipeline capture</span><span id="metricFunnelYield" class="font-bold text-emerald-400">—</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ledger + top accounts -->
+  <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4">
+    <div class="card rounded-3xl p-4 sm:p-6 space-y-3 min-w-0">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-lg font-bold text-white">Pipeline Ledger</h3>
+          <p class="text-xs text-slate-400">Every lead, quote and win behind the numbers — search, sort, group, drill in</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <input id="tableSearch" type="search" placeholder="Search customer…" aria-label="Search customers"
+            class="ring-focus h-9 w-40 sm:w-48 bg-slate-900 border border-slate-700 rounded-lg px-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:border-emerald-400" />
+          <select id="groupBy" aria-label="Group ledger by dimension"
+            class="ring-focus h-9 bg-slate-900 border border-slate-700 rounded-lg px-2 text-xs text-slate-200 focus:border-emerald-400">
+            <option value="">Ledger rows</option>
+            <option value="vintage">Group: vintage</option>
+            <option value="cls">Group: sector</option>
+            <option value="channel">Group: channel</option>
+            <option value="year">Group: year</option>
+            <option value="account">Group: customer</option>
+          </select>
+          <select id="mobileSort" aria-label="Sort ledger"
+            class="sm:hidden ring-focus h-9 bg-slate-900 border border-slate-700 rounded-lg px-2 text-xs text-slate-200 focus:border-emerald-400">
+            <option value="wonValue">Sort: won $</option>
+            <option value="quoteValue">Sort: quote $</option>
+            <option value="year">Sort: year</option>
+            <option value="account">Sort: customer</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="tableTabs" class="flex flex-nowrap gap-1.5 overflow-x-auto no-scrollbar" role="tablist" aria-label="Ledger stage filter"></div>
+
+      <div class="hidden sm:block overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+        <table class="w-full text-xs sm:text-sm min-w-[520px]">
+          <thead class="text-slate-400 border-b border-slate-800" id="tableHead"></thead>
+          <tbody id="tableBody" class="divide-y divide-slate-800/70"></tbody>
+        </table>
+      </div>
+      <div id="ledgerCards" class="sm:hidden space-y-2"></div>
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+        <span id="tableSummary">—</span>
+        <div class="flex items-center gap-1.5">
+          <button id="pagePrev" type="button" class="ring-focus seg-btn px-2.5 rounded-lg bg-slate-900 border border-slate-700 hover:text-white disabled:opacity-40">Prev</button>
+          <span id="pageLabel" class="num px-1">—</span>
+          <button id="pageNext" type="button" class="ring-focus seg-btn px-2.5 rounded-lg bg-slate-900 border border-slate-700 hover:text-white disabled:opacity-40">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="card rounded-3xl p-4 sm:p-5 space-y-3">
+      <div>
+        <h3 class="font-bold text-white text-base">Top Customers in View</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Ranked by won revenue · click to search</p>
+      </div>
+      <div id="topAccounts" class="space-y-2.5"></div>
+      <p class="text-xs text-slate-500 border-t border-slate-800 pt-2.5">Revenue concentration shows whether growth depends on a handful of accounts.</p>
+    </aside>
+  </section>
+
+  <footer class="max-w-7xl mx-auto pt-6 text-center space-y-2">
+    <p class="text-xs text-slate-400">Interactive infographic · figures in USD · FY2026 is year-to-date · targets inherit prior-year actuals, so a downturn also lowers the next target.</p>
+    <p class="text-xs text-slate-500">100% client-side. No tracking, no backend, no build step.</p>
+  </footer>
+</main>
+
+<p id="srStatus" class="sr-only" role="status" aria-live="polite"></p>
+<noscript><p class="max-w-7xl mx-auto px-4 py-8 text-sm text-slate-300">This dashboard needs JavaScript to render its interactive analytics.</p></noscript>
+
+<!-- ============================ ENGINE ============================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------- deterministic PRNG ---------------- */
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rng = mulberry32(20261022);
+  const randInt = (n) => Math.floor(rng() * n);
+  const pick = (arr) => arr[randInt(arr.length)];
+
+  /* ---------------- company plan (the only hand-authored facts) ---------------- */
+  const BASE_YEAR = 2016;
+  const BASE_ACTUAL = 1120000;
+  const YEAR_PLANS = [
+    { year: 2017, actual: 1410000, leads: 90,  quotes: 26, wins: 11,  lostRatio: 1.55, newRate: 0.35, winback: 0.00, vintageMix: [100, 0, 0] },
+    { year: 2018, actual: 1720000, leads: 104, quotes: 32, wins: 13, lostRatio: 1.56, newRate: 0.25, winback: 0.03, vintageMix: [55, 45, 0] },
+    { year: 2019, actual: 1955000, leads: 112, quotes: 34, wins: 14, lostRatio: 1.61, newRate: 0.15, winback: 0.05, vintageMix: [40, 55, 5] },
+    { year: 2020, actual: 1780000, leads: 86,  quotes: 28, wins: 11, lostRatio: 1.75, newRate: 0.06, winback: 0.02, vintageMix: [18, 70, 12] },
+    { year: 2021, actual: 2240000, leads: 118, quotes: 36, wins: 15, lostRatio: 1.63, newRate: 0.16, winback: 0.16, vintageMix: [30, 55, 15] },
+    { year: 2022, actual: 2980000, leads: 142, quotes: 42, wins: 18, lostRatio: 1.55, newRate: 0.26, winback: 0.06, vintageMix: [45, 47, 8] },
+    { year: 2023, actual: 3430000, leads: 166, quotes: 56, wins: 20, lostRatio: 1.74, newRate: 0.13, winback: 0.10, vintageMix: [28, 62, 10] },
+    { year: 2024, actual: 4320000, leads: 172, quotes: 50, wins: 24, lostRatio: 1.45, newRate: 0.1, winback: 0.05, vintageMix: [24, 66, 10] },
+    { year: 2025, actual: 4520000, leads: 196, quotes: 64, wins: 26, lostRatio: 1.74, newRate: 0.11, winback: 0.09, vintageMix: [26, 64, 10] },
+    { year: 2026, actual: 4870000, leads: 201, quotes: 65, wins: 27, lostRatio: 1.71, newRate: 0.08, winback: 0.05, vintageMix: [22, 68, 10] }
+  ];
+  const VINTAGE = ['new', 'current', 'old'];
+  const VINTAGE_LABEL = { new: 'New customer', current: 'Retained', old: 'Reactivated' };
+  const VINTAGE_COLOR = { new: '#10b981', current: '#06b6d4', old: '#94a3b8' };
+  const SECTORS = ['commercial', 'academic'];
+  const SECTOR_LABEL = { commercial: 'Commercial', academic: 'Academic & research' };
+  const SECTOR_COLOR = { commercial: '#8b5cf6', academic: '#ec4899' };
+  const CHANNELS = ['renewals', 'expansion', 'webSocial', 'outbound', 'partners'];
+  const CHANNEL_LABEL = { renewals: 'Renewals', expansion: 'Expansion', webSocial: 'Web & social', outbound: 'Outbound & SDRs', partners: 'Partners' };
+  const CHANNEL_COLOR = { renewals: '#10b981', expansion: '#3b82f6', webSocial: '#f59e0b', outbound: '#ec4899', partners: '#8b5cf6' };
+  const CHANNEL_WEIGHTS = {
+    2017: [30, 14, 12, 28, 16], 2018: [33, 15, 14, 26, 12], 2019: [36, 16, 16, 22, 10],
+    2020: [44, 11, 17, 20, 8],  2021: [40, 18, 16, 18, 8],  2022: [32, 20, 18, 17, 13],
+    2023: [38, 19, 19, 16, 8],  2024: [41, 20, 20, 13, 6],  2025: [39, 22, 21, 11, 7],
+    2026: [42, 21, 20, 10, 7]
+  };
+  const SECTOR_ACADEMIC_SHARE = { 2017: 32, 2018: 29, 2019: 26, 2020: 34, 2021: 30, 2022: 24, 2023: 28, 2024: 30, 2025: 27, 2026: 31 };
+
+  /* ---------------- synthetic account + pipeline records ---------------- */
+  const NAME_A = ['North', 'Summit', 'Apex', 'Blue', 'Silver', 'Omni', 'Vertex', 'Crescent', 'Atlas', 'Delta', 'Quantum', 'Pioneer', 'Keystone', 'Meridian', 'Harbor', 'Horizon', 'Nexus', 'Cobalt', 'Titan', 'Vector', 'Orion', 'Granite', 'Sable', 'Lumen', 'Cascade', 'Pinnacle', 'Sterling', 'Evergreen', 'Ridge', 'Solstice', 'Vantage', 'Aurora', 'Beacon', 'Cedar', 'Iron', 'Juniper', 'Nimbus', 'Onyx', 'Praxis', 'Quarry', 'Redwood', 'Sierra', 'Tundra', 'Vista', 'Willow'];
+  const NAME_B = ['Instruments', 'Analytics', 'Diagnostics', 'Robotics', 'Systems', 'Labs', 'Research', 'Technologies', 'Solutions', 'Metrology', 'Devices', 'Sciences', 'Networks', 'Controls', 'Imaging', 'Materials', 'Automation', 'Sensors', 'Optics', 'Engineering'];
+  const NAME_C = ['Group', 'Inc', 'LLC', 'Ltd', 'Corp', 'Partners', 'Holdings', 'Institute', 'Technologies', 'Laboratory'];
+
+  const accounts = [];
+  const usedNames = new Set();
+  function makeAccount(year) {
+    let name;
+    do { name = pick(NAME_A) + ' ' + pick(NAME_B) + ' ' + pick(NAME_C); } while (usedNames.has(name));
+    usedNames.add(name);
+    const acct = {
+      id: accounts.length,
+      name: name,
+      sector: rng() * 100 < SECTOR_ACADEMIC_SHARE[year] ? 'academic' : 'commercial',
+      weight: 0.1 + Math.pow(rng(), 3.4) * 35,
+      lastYear: 0
+    };
+    accounts.push(acct);
+    return acct;
+  }
+  function pickExistingAccount() {
+    let total = 0;
+    for (const a of accounts) total += Math.pow(a.weight, 1.6);
+    let r = rng() * total;
+    for (const a of accounts) { r -= Math.pow(a.weight, 1.6); if (r <= 0) return a; }
+    return accounts[accounts.length - 1];
+  }
+  function pickDormant(year) {
+    const pool = accounts.filter((a) => a.lastYear > 0 && a.lastYear <= year - 2);
+    if (!pool.length) return pickExistingAccount();
+    return pool[randInt(pool.length)];
+  }
+
+  const records = [];
+  let recId = 0;
+
+  function distributeBy(total, weights) {
+    if (!weights.length) return [];
+    const sum = weights.reduce((a, b) => a + b, 0) || 1;
+    const n = weights.length;
+    const vals = weights.map((x) => Math.round((total * x / sum) / 10) * 10);
+    let diff = total - vals.reduce((a, b) => a + b, 0);
+    let maxI = 0;
+    for (let i = 1; i < n; i++) if (vals[i] > vals[maxI]) maxI = i;
+    vals[maxI] += diff;
+    return vals;
+  }
+
+  function distribute(total, n, skew) {
+    if (n <= 0) return [];
+    const w = new Array(n);
+    for (let i = 0; i < n; i++) w[i] = 0.35 + Math.pow(rng(), skew) * 6;
+    return distributeBy(total, w);
+  }
+
+  function quota(total, pcts) {
+    const raw = pcts.map((p) => total * p / 100);
+    const out = raw.map(Math.floor);
+    let rem = total - out.reduce((a, b) => a + b, 0);
+    const order = raw.map((v, i) => [v - out[i], i]).sort((a, b) => b[0] - a[0]);
+    for (let k = 0; k < rem; k++) out[order[k % out.length][1]]++;
+    return out;
+  }
+
+  function assignVintage(rows, mix) {
+    const counts = quota(rows.length, mix);
+    const bag = [];
+    counts.forEach((c, i) => { for (let n = 0; n < c; n++) bag.push(VINTAGE[i]); });
+    for (let i = bag.length - 1; i > 0; i--) { const j = randInt(i + 1); const t = bag[i]; bag[i] = bag[j]; bag[j] = t; }
+    rows.forEach((r, i) => { r.vintage = bag[i] || VINTAGE[0]; });
+  }
+
+  function buildYear(plan) {
+    const nLeads = plan.leads, nQuotes = plan.quotes, nWins = plan.wins;
+    const idx = Array.from({ length: nLeads }, (_, i) => i);
+    for (let i = idx.length - 1; i > 0; i--) { const j = randInt(i + 1); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
+    const quoted = new Set(idx.slice(0, nQuotes));
+    const won = new Set(idx.slice(0, nWins)); // wins are always quoted: first nWins are within the quoted prefix
+    const chanW = CHANNEL_WEIGHTS[plan.year];
+
+    const yearRecords = [];
+    for (let i = 0; i < nLeads; i++) {
+      const acct = rng() < plan.newRate || accounts.length === 0
+        ? makeAccount(plan.year)
+        : (rng() < plan.winback ? pickDormant(plan.year) : pickExistingAccount());
+      const channel = weightedKey(CHANNELS, chanW);
+      const isQuoted = quoted.has(i);
+      const isWon = won.has(i);
+      yearRecords.push({
+        id: recId++, year: plan.year, account: acct.name, accountId: acct.id, accountWeight: acct.weight, sector: acct.sector,
+        channel: channel, vintage: null, stage: isWon ? 'won' : (isQuoted ? 'lost' : 'open'),
+        leadValue: 0, quoteValue: 0, wonValue: 0
+      });
+      acct.lastYear = plan.year;
+    }
+
+    // values: won revenue is pinned to the reported actual
+    const wonRecs = yearRecords.filter((r) => r.stage === 'won');
+    const wonVals = distributeBy(plan.actual, wonRecs.map((r) => 1 + r.accountWeight * (0.6 + rng())));
+    wonRecs.forEach((r, i) => { r.wonValue = wonVals[i]; r.quoteValue = wonVals[i]; });
+
+    // lost quotes carry the wasted pipeline
+    const lostRecs = yearRecords.filter((r) => r.stage === 'lost');
+    const lostVals = distributeBy(Math.round(plan.actual * plan.lostRatio), lostRecs.map((r) => 1 + r.accountWeight * (0.5 + rng())));
+    lostRecs.forEach((r, i) => { r.quoteValue = lostVals[i]; });
+
+    // lead estimates sit above quote value for quoted records, small for raw leads
+    yearRecords.forEach((r) => {
+      if (r.quoteValue > 0) r.leadValue = Math.round((r.quoteValue * (1.15 + rng() * 1.05)) / 10) * 10;
+    });
+    const openRecs = yearRecords.filter((r) => r.stage === 'open');
+    const openVals = distribute(Math.round(plan.actual * 0.85), openRecs.length, 2.8);
+    openRecs.forEach((r, i) => { r.leadValue = openVals[i]; });
+
+    assignVintage(yearRecords.filter((r) => r.stage === 'won'), plan.vintageMix);
+    assignVintage(yearRecords.filter((r) => r.stage !== 'won'), plan.vintageMix);
+
+    records.push(...yearRecords);
+  }
+
+  function weightedKey(keys, weights) {
+    let total = 0;
+    for (const w of weights) total += w;
+    let r = rng() * total;
+    for (let i = 0; i < keys.length; i++) { r -= weights[i]; if (r <= 0) return keys[i]; }
+    return keys[keys.length - 1];
+  }
+
+  YEAR_PLANS.forEach(buildYear);
+
+  const YEARS = YEAR_PLANS.map((p) => p.year);
+  const YEAR_INDEX = new Map(YEARS.map((y, i) => [y, i]));
+
+  function verifyData() {
+    const issues = [];
+    for (const p of YEAR_PLANS) {
+      const yr = records.filter((r) => r.year === p.year);
+      const won = yr.filter((r) => r.stage === 'won');
+      const quoted = yr.filter((r) => r.stage !== 'open');
+      const wonSum = won.reduce((a, r) => a + r.wonValue, 0);
+      if (yr.length !== p.leads) issues.push('lead count ' + p.year);
+      if (quoted.length !== p.quotes) issues.push('quote count ' + p.year);
+      if (won.length !== p.wins) issues.push('win count ' + p.year);
+      if (wonSum !== p.actual) issues.push('revenue mismatch ' + p.year + ' ' + wonSum + ' vs ' + p.actual);
+      if (won.some((r) => r.wonValue > r.quoteValue)) issues.push('won exceeds quote ' + p.year);
+      for (const dim of ['vintage', 'sector', 'channel']) {
+        const keys = dim === 'vintage' ? VINTAGE : dim === 'sector' ? SECTORS : CHANNELS;
+        const sum = keys.reduce((a, k) => a + won.filter((r) => r[dim] === k).reduce((x, r) => x + r.wonValue, 0), 0);
+        if (sum !== wonSum) issues.push(dim + ' parity ' + p.year);
+      }
+    }
+    return issues;
+  }
+  const DATA_ISSUES = verifyData();
+  if (DATA_ISSUES.length) console.error('[sales-engine] data integrity:', DATA_ISSUES);
+
+  /* ---------------- state ---------------- */
+  const state = {
+    year: 'ALL', multiplier: 1.25, mode: 'absolute',
+    vintage: null, sector: null, channel: null,
+    tab: 'all', groupBy: '', search: '', sortKey: 'wonValue', sortDir: 'desc', page: 1
+  };
+  const PAGE_SIZE = 20;
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (REDUCED && window.Chart) Chart.defaults.animation = false;
+
+  /* ---------------- formatting ---------------- */
+  const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const num = new Intl.NumberFormat('en-US');
+  function money(n) { return usd.format(Math.round(n)); }
+  function compact(n) {
+    const a = Math.abs(n);
+    if (a >= 1e6) return '$' + (n / 1e6).toFixed(a >= 1e7 ? 1 : 2).replace(/\.0+$/, '') + 'M';
+    if (a >= 1e3) return '$' + Math.round(n / 1e3) + 'k';
+    return '$' + Math.round(n);
+  }
+  function pct(n, d) { return d > 0 ? (n / d) * 100 : 0; }
+  function pctStr(n, d, digits) { return pct(n, d).toFixed(digits === undefined ? 1 : digits) + '%'; }
+  function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+
+  /* ---------------- derived data ---------------- */
+  function targetsFor(mult) {
+    return YEAR_PLANS.map((p, i) => Math.round((i === 0 ? BASE_ACTUAL : YEAR_PLANS[i - 1].actual) * mult));
+  }
+  const fmtUSD = money;
+
+  function matches(r, ignore) {
+    if (state.year !== 'ALL' && r.year !== state.year) return false;
+    if (ignore !== 'vintage' && state.vintage && r.vintage !== state.vintage) return false;
+    if (ignore !== 'sector' && state.sector && r.sector !== state.sector) return false;
+    if (ignore !== 'channel' && state.channel && r.channel !== state.channel) return false;
+    return true;
+  }
+  function subset(ignore) {
+    const out = [];
+    for (const r of records) if (matches(r, ignore)) out.push(r);
+    return out;
+  }
+  function totals(rows) {
+    const t = { leads: 0, quoted: 0, wins: 0, leadValue: 0, quoteValue: 0, wonValue: 0 };
+    for (const r of rows) {
+      t.leads++;
+      t.leadValue += r.leadValue;
+      if (r.stage !== 'open') { t.quoted++; t.quoteValue += r.quoteValue; }
+      if (r.stage === 'won') { t.wins++; t.wonValue += r.wonValue; }
+    }
+    return t;
+  }
+  const periodLabel = () => (state.year === 'ALL' ? 'FY2017–FY2026' : 'FY' + state.year);
+  const filterActive = () => !!(state.vintage || state.sector || state.channel);
+  const filterCount = () => (state.vintage ? 1 : 0) + (state.sector ? 1 : 0) + (state.channel ? 1 : 0);
+
+  function groupSum(rows, keyFn) {
+    const m = new Map();
+    for (const r of rows) {
+      const k = keyFn(r);
+      let g = m.get(k);
+      if (!g) { g = { key: k, leads: 0, quoted: 0, wins: 0, leadValue: 0, quoteValue: 0, wonValue: 0 }; m.set(k, g); }
+      g.leads++; g.leadValue += r.leadValue;
+      if (r.stage !== 'open') { g.quoted++; g.quoteValue += r.quoteValue; }
+      if (r.stage === 'won') { g.wins++; g.wonValue += r.wonValue; }
+    }
+    return Array.from(m.values());
+  }
+
+  /* ---------------- DOM helpers ---------------- */
+  const $ = (id) => document.getElementById(id);
+  const el = {};
+
+  function renderChips() {
+    const box = $('activeFilters');
+    box.innerHTML = '';
+    const chips = [];
+    if (state.vintage) chips.push(['Vintage: ' + VINTAGE_LABEL[state.vintage], () => { state.vintage = null; }]);
+    if (state.sector) chips.push(['Sector: ' + SECTOR_LABEL[state.sector], () => { state.sector = null; }]);
+    if (state.channel) chips.push(['Channel: ' + CHANNEL_LABEL[state.channel], () => { state.channel = null; }]);
+    if (state.search) chips.push(['Search: ' + state.search, () => { state.search = ''; $('tableSearch').value = ''; }]);
+    chips.forEach(([label, clear]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ring-focus inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition';
+      b.innerHTML = '<span>' + label + '</span><span aria-hidden="true">×</span>';
+      b.setAttribute('aria-label', 'Clear filter ' + label);
+      b.onclick = () => { clear(); state.page = 1; renderAll(); };
+      box.appendChild(b);
+    });
+    if (chips.length) {
+      const clearAll = document.createElement('button');
+      clearAll.type = 'button';
+      clearAll.className = 'ring-focus text-xs font-semibold px-2 py-1 rounded-full text-slate-400 hover:text-white transition';
+      clearAll.textContent = 'Clear all';
+      clearAll.onclick = () => { state.vintage = state.sector = state.channel = null; state.search = ''; $('tableSearch').value = ''; state.page = 1; renderAll(); };
+      box.appendChild(clearAll);
+    }
+  }
+
+  function renderYearPills(scrollActive) {
+    const box = $('yearSelectorContainer');
+    box.innerHTML = '';
+    ['ALL'].concat(YEARS).forEach((y) => {
+      const active = state.year === y;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.year = String(y);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+      b.className = 'pill ring-focus px-3 rounded-xl text-xs font-bold transition border ' + (active
+        ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20'
+        : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-white hover:border-slate-600');
+      b.textContent = y === 'ALL' ? 'All years' : String(y);
+      b.onclick = () => selectYear(y);
+      box.appendChild(b);
+    });
+    if (scrollActive) {
+      const active = box.querySelector('[aria-pressed="true"]');
+      if (active) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  }
+
+  function selectYear(y) {
+    state.year = state.year === y ? 'ALL' : y;
+    state.page = 1;
+    renderAll(true);
+    announceScope();
+  }
+
+  function announceScope() {
+    const el = $('srStatus');
+    if (!el) return;
+    const parts = [state.year === 'ALL' ? 'all years' : 'FY' + state.year];
+    if (state.vintage) parts.push(VINTAGE_LABEL[state.vintage]);
+    if (state.sector) parts.push(SECTOR_LABEL[state.sector]);
+    if (state.channel) parts.push(CHANNEL_LABEL[state.channel]);
+    el.textContent = 'Showing ' + parts.join(', ') + '. Actual sales ' + money(totals(subset()).wonValue) + '.';
+  }
+
+  /* ---------------- KPI + verdict ---------------- */
+  let countUps = {};
+  function setKpi(node, value, duration) {
+    if (REDUCED) { node.textContent = value; return; }
+    const prev = countUps[node.id] || 0;
+    countUps[node.id] = value;
+    if (!duration) { node.textContent = typeof value === 'number' ? num.format(Math.round(value)) : value; return; }
+    const start = performance.now();
+    const from = prev;
+    const to = value;
+    function frame(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      node.textContent = Math.round(from + (to - from) * eased).toLocaleString('en-US');
+      if (t < 1) requestAnimationFrame(frame);
+      else node.textContent = num.format(Math.round(to));
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function renderKPIs(rows, scope) {
+    const t = totals(rows);
+    const targets = targetsFor(state.multiplier);
+    const yearIdx = state.year === 'ALL' ? null : YEAR_INDEX.get(state.year);
+
+    const actual = t.wonValue;
+    $('kpiActual').textContent = compact(actual);
+    $('kpiActual').title = money(actual);
+
+    let actualSub = periodLabel() + ' · exact ' + money(actual);
+    if (yearIdx !== null) {
+      const prevRows = records.filter((r) => r.year === YEARS[yearIdx - 1] && matchesSegments(r));
+      const prev = totals(prevRows).wonValue;
+      if (prev > 0) {
+        const delta = pct(actual - prev, prev);
+        actualSub = (delta >= 0 ? '▲ +' : '▼ ') + delta.toFixed(1) + '% vs FY' + YEARS[yearIdx - 1] + ' · exact ' + money(actual);
+      }
+    }
+    $('kpiActualSub').textContent = actualSub;
+
+    const companyTarget = state.year === 'ALL'
+      ? targets.reduce((a, b) => a + b, 0)
+      : targets[yearIdx];
+    $('kpiTarget').textContent = compact(companyTarget);
+    $('kpiTarget').title = money(companyTarget);
+    $('kpiTargetSub').textContent = 'Company plan · exact ' + money(companyTarget);
+
+    const third = $('kpiAttainment');
+    const thirdLabel = $('kpiThirdLabel');
+    const thirdBar = $('kpiAttainmentBar');
+    const thirdSub = $('kpiAttainmentSub');
+
+    if (filterActive()) {
+      const allRows = records.filter((r) => state.year === 'ALL' || r.year === state.year);
+      const allWon = totals(allRows).wonValue;
+      const share = pct(actual, allWon);
+      thirdLabel.textContent = 'Share of Scope Revenue';
+      third.textContent = share.toFixed(1) + '%';
+      third.className = 'num text-[27px] sm:text-3xl font-extrabold mt-1 ' + (share >= 50 ? 'text-emerald-400' : 'text-cyan-300');
+      thirdBar.style.width = Math.min(100, share) + '%';
+      thirdBar.className = 'h-full transition-all duration-500 bg-gradient-to-r ' + (share >= 50 ? 'from-emerald-500 to-teal-400' : 'from-cyan-500 to-sky-400');
+      thirdSub.textContent = compact(actual) + ' of ' + compact(allWon) + ' in ' + periodLabel();
+    } else {
+      const attain = pct(actual, companyTarget);
+      thirdLabel.textContent = 'Attainment vs Plan';
+      third.textContent = attain.toFixed(1) + '%';
+      const good = attain >= 100, mid = attain >= 90;
+      third.className = 'num text-[27px] sm:text-3xl font-extrabold mt-1 ' + (good ? 'text-emerald-400' : mid ? 'text-amber-400' : 'text-rose-400');
+      thirdBar.style.width = Math.min(100, attain) + '%';
+      thirdBar.className = 'h-full transition-all duration-500 bg-gradient-to-r ' + (good ? 'from-emerald-500 to-teal-400' : mid ? 'from-amber-500 to-yellow-400' : 'from-rose-500 to-orange-400');
+      thirdSub.textContent = (good ? 'On or above plan' : mid ? 'Short of plan' : 'Below plan') +
+        ' · ' + (state.year === 'ALL' ? 'sum of annual plans · includes FY2026 YTD' : compact(actual - companyTarget) + ' vs plan');
+    }
+
+    const win = pct(t.wins, t.quoted);
+    const valueWin = pct(t.wonValue, t.quoteValue);
+    $('kpiWinRate').textContent = win.toFixed(1) + '%';
+    $('kpiWinRateSub').textContent = num.format(t.wins) + '/' + num.format(t.quoted) + ' quotes · ' + valueWin.toFixed(1) + '% by value';
+
+    // verdict
+    const allTargets = targets;
+    const met = YEAR_PLANS.filter((p, i) => p.actual >= allTargets[i]).length;
+    const atts = YEAR_PLANS.map((p, i) => pct(p.actual, allTargets[i]));
+    const bestI = atts.indexOf(Math.max.apply(null, atts));
+    const worstI = atts.indexOf(Math.min.apply(null, atts));
+    const cagr = (Math.pow(YEAR_PLANS[YEAR_PLANS.length - 2].actual / YEAR_PLANS[0].actual, 1 / (YEAR_PLANS.length - 2)) - 1) * 100;
+
+    const lostValue = t.quoteValue - t.wonValue;
+    const lostCount = t.quoted - t.wins;
+
+    const scopePrefix = filterActive()
+      ? (state.vintage ? VINTAGE_LABEL[state.vintage] + ' · ' : '') + (state.sector ? SECTOR_LABEL[state.sector] + ' · ' : '') + (state.channel ? CHANNEL_LABEL[state.channel] + ' · ' : '')
+      : '';
+
+    let verdict;
+    if (state.year === 'ALL') {
+      const y2020 = YEAR_PLANS.find((p) => p.year === 2020);
+      const y2019 = YEAR_PLANS.find((p) => p.year === 2019);
+      const dip = pct(y2020.actual - y2019.actual, y2019.actual).toFixed(1);
+      verdict = scopePrefix + 'Across 10 fiscal years the team delivered ' + compact(t.wonValue) + ' against ' +
+        compact(companyTarget) + ' of dynamic plan (' + (filterActive() ? 'segment view' : 'company view') + '). ' +
+        'Plan was met in ' + met + ' of 10 years; the 2020 contraction cut revenue ' +
+        dip + '% but also lowered the 2021 target.';
+    } else {
+      const p = YEAR_PLANS[yearIdx];
+      const a = pct(p.actual, companyTarget);
+      verdict = scopePrefix + 'FY' + p.year + ' closed ' + compact(t.wonValue) + ' vs ' + compact(companyTarget) +
+        ' plan (' + a.toFixed(1) + '%, ' + (a >= 100 ? 'ahead' : 'behind') + '), with ' +
+        compact(lostValue) + ' of quoted pipeline (' + num.format(lostCount) + ' quotes) never converted.';
+      if (p.year === 2026) verdict += ' FY2026 is still in progress.';
+    }
+    $('trendVerdict').textContent = verdict;
+
+    $('statCagr').textContent = '+' + cagr.toFixed(1) + '%';
+    $('statHitRate').textContent = met + ' / 10';
+    $('statBestWorst').textContent = YEARS[bestI] + ' · ' + YEARS[worstI];
+    $('statLost').textContent = compact(lostValue);
+    $('statLostSub').textContent = num.format(lostCount) + ' quotes never closed';
+
+    const note = $('filterNote');
+    if (filterActive()) {
+      note.classList.remove('hidden');
+      note.textContent = 'Bars show ' + (scopePrefix.replace(/ · $/, '') || 'the filtered segment') + ' revenue; the target line stays company-wide because plans are set at company level.';
+    } else {
+      note.classList.add('hidden');
+    }
+  }
+
+  function matchesSegments(r) {
+    if (state.vintage && r.vintage !== state.vintage) return false;
+    if (state.sector && r.sector !== state.sector) return false;
+    if (state.channel && r.channel !== state.channel) return false;
+    return true;
+  }
+
+  /* ---------------- charts ---------------- */
+  let trendChart = null, vintageChart = null, sectorChart = null, channelChart = null;
+
+  function trendRows() {
+    const rows = subset('year');
+    const per = new Map(YEARS.map((y) => [y, 0]));
+    rows.forEach((r) => { if (r.stage === 'won') per.set(r.year, per.get(r.year) + r.wonValue); });
+    return per;
+  }
+
+  function renderTrend() {
+    const ctx = $('trendChart').getContext('2d');
+    const targets = targetsFor(state.multiplier);
+    const per = trendRows();
+    const actuals = YEARS.map((y) => per.get(y));
+    const labels = YEARS.slice();
+    const selectedIdx = state.year === 'ALL' ? -1 : YEAR_INDEX.get(state.year);
+    const colors = actuals.map((_, i) => {
+      if (selectedIdx === -1) return 'rgba(16,185,129,.78)';
+      return i === selectedIdx ? 'rgba(16,185,129,.95)' : 'rgba(16,185,129,.22)';
+    });
+    const targetColor = selectedIdx === -1 ? '#f59e0b' : 'rgba(245,158,11,.55)';
+
+    if (trendChart) {
+      trendChart.data.labels = labels;
+      trendChart.data.datasets[0].data = actuals;
+      trendChart.data.datasets[0].backgroundColor = colors;
+      trendChart.data.datasets[1].data = targets;
+      trendChart.data.datasets[1].borderColor = targetColor;
+      trendChart.update();
+      return;
+    }
+
+    trendChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            type: 'bar', label: 'Actual revenue', data: actuals, backgroundColor: colors,
+            borderColor: 'rgba(16,185,129,.9)', borderWidth: 1, borderRadius: 6, maxBarThickness: 56, order: 2
+          },
+          {
+            type: 'line', label: 'Target', data: targets, borderColor: targetColor, backgroundColor: 'rgba(245,158,11,.08)',
+            borderWidth: 2.5, pointBackgroundColor: '#f59e0b', pointRadius: 4, pointHoverRadius: 7, tension: 0, cubicInterpolationMode: 'default', order: 1, fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: REDUCED ? false : { duration: 380 },
+        interaction: { mode: 'index', intersect: false },
+        onClick: (evt, elements, chart) => {
+          const pts = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, true);
+          if (!pts.length) return;
+          selectYear(YEARS[pts[0].index]);
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => 'FY' + items[0].label,
+              label: (c) => c.dataset.label + ': ' + fmtUSD(c.raw),
+              afterBody: (items) => {
+                const i = items[0].dataIndex;
+                if (i < 0) return '';
+                const a = actuals[i], t = targets[i];
+                return 'Attainment: ' + pctStr(a, t) + (state.year !== 'ALL' && YEAR_INDEX.get(state.year) === i ? '  ← selected' : '');
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#94a3b8', font: { weight: '600', size: 12 }, maxRotation: 0, autoSkipPadding: 6,
+              callback: function (v) { const l = this.getLabelForValue(v); return this.chart.width < 480 ? "'" + String(l).slice(2) : l; }
+            }
+          },
+          y: {
+            grid: { color: 'rgba(148,163,184,.10)' },
+            ticks: { color: '#94a3b8', font: { size: 12 }, callback: (v) => compact(v) }
+          }
+        }
+      }
+    });
+  }
+
+  function doughnut(canvasId, instance, labels, values, colors, keys, dim, listId) {
+    const ctx = $(canvasId).getContext('2d');
+    if (instance) {
+      instance.data.labels = labels;
+      instance.data.datasets[0].data = values;
+      instance.data.datasets[0].backgroundColor = colors;
+      instance.update();
+      return instance;
+    }
+    return new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#0b1220', hoverOffset: 6 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '68%',
+        animation: REDUCED ? false : { duration: 380 },
+        onClick: (evt, elements) => { if (elements.length) toggleSegment(dim, keys[elements[0].index]); },
+        onHover: (evt, elements) => highlightRow(listId, elements.length ? elements[0].index : -1),
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (c) => {
+                const sum = c.dataset.data.reduce((a, b) => a + b, 0);
+                return ' ' + c.label + ': ' + fmtUSD(c.raw) + ' (' + pctStr(c.raw, sum) + ')';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function highlightRow(listId, idx) {
+    const rows = $(listId).querySelectorAll('.slice-row');
+    rows.forEach((r, i) => r.classList.toggle('is-active', i === idx));
+  }
+
+  function toggleSegment(dim, key) {
+    if (!key) return;
+    const prop = dim === 'sector' ? 'sector' : dim;
+    state[prop] = state[prop] === key ? null : key;
+    state.page = 1;
+    renderAll();
+    announceScope();
+  }
+
+  function renderBreakdowns() {
+    // vintage (ignores its own filter so all slices stay available)
+    const vRows = subset('vintage').filter((r) => r.stage === 'won');
+    const vSum = totals(subset('vintage')).wonValue;
+    const vVals = VINTAGE.map((k) => vRows.reduce((a, r) => a + (r.vintage === k ? r.wonValue : 0), 0));
+    vintageChart = doughnut('vintageChart', vintageChart, VINTAGE.map((k) => VINTAGE_LABEL[k]), vVals, VINTAGE.map((k) => VINTAGE_COLOR[k]), VINTAGE, 'vintage', 'vintageList');
+    renderSliceList('vintageList', VINTAGE, vVals, VINTAGE.map((k) => VINTAGE_COLOR[k]), vSum, 'vintage');
+
+    // sector
+    const sRows = subset('sector').filter((r) => r.stage === 'won');
+    const sSum = totals(subset('sector')).wonValue;
+    const sVals = SECTORS.map((k) => sRows.reduce((a, r) => a + (r.sector === k ? r.wonValue : 0), 0));
+    sectorChart = doughnut('classificationChart', sectorChart, SECTORS.map((k) => SECTOR_LABEL[k]), sVals, SECTORS.map((k) => SECTOR_COLOR[k]), SECTORS, 'sector', 'classificationList');
+    renderSliceList('classificationList', SECTORS, sVals, SECTORS.map((k) => SECTOR_COLOR[k]), sSum, 'sector', SECTOR_LABEL);
+
+    // channels as ranked horizontal bars
+    const cRows = subset('channel').filter((r) => r.stage === 'won');
+    const cSum = totals(subset('channel')).wonValue;
+    const cVals = CHANNELS.map((k) => cRows.reduce((a, r) => a + (r.channel === k ? r.wonValue : 0), 0));
+    const ctx = $('channelChart').getContext('2d');
+    if (channelChart) {
+      channelChart.data.datasets[0].data = cVals;
+      channelChart.data.datasets[0].backgroundColor = CHANNELS.map((k) => CHANNEL_COLOR[k]);
+      channelChart.update();
+    } else {
+      channelChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: CHANNELS.map((k) => CHANNEL_LABEL[k]), datasets: [{ data: cVals, backgroundColor: CHANNELS.map((k) => CHANNEL_COLOR[k]), borderRadius: 5, maxBarThickness: 22 }] },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          animation: REDUCED ? false : { duration: 380 },
+          onClick: (evt, elements) => { if (elements.length) toggleSegment('channel', CHANNELS[elements[0].index]); },
+          onHover: (evt, elements) => highlightRow('channelList', elements.length ? elements[0].index : -1),
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (c) => {
+                  const sum = c.dataset.data.reduce((a, b) => a + b, 0);
+                  return ' ' + fmtUSD(c.raw) + ' (' + pctStr(c.raw, sum) + ')';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { display: false, grid: { display: false } },
+            y: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { size: 12 } } }
+          }
+        }
+      });
+    }
+    renderSliceList('channelList', CHANNELS, cVals, CHANNELS.map((k) => CHANNEL_COLOR[k]), cSum, 'channel', CHANNEL_LABEL);
+  }
+
+  function renderSliceList(listId, keys, values, colors, total, dim, labels) {
+    const box = $(listId);
+    box.innerHTML = '';
+    const active = state[dim];
+    keys.forEach((k, i) => {
+      const v = values[i];
+      const share = pct(v, total);
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'slice-row ring-focus w-full flex items-center justify-between gap-2 rounded-lg px-1.5 py-1 text-left transition hover:bg-slate-800/60' + (active === k ? ' is-active' : '');
+      row.setAttribute('aria-pressed', active === k ? 'true' : 'false');
+      row.title = 'Filter by ' + (labels ? labels[k] : VINTAGE_LABEL[k] || k);
+      row.innerHTML =
+        '<span class="flex items-center gap-2 min-w-0">' +
+          '<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:' + colors[i] + '"></span>' +
+          '<span class="truncate text-slate-300">' + (labels ? labels[k] : VINTAGE_LABEL[k] || SECTOR_LABEL[k] || k) + '</span>' +
+        '</span>' +
+        '<span class="num font-bold text-slate-100 shrink-0">' +
+          (state.mode === 'absolute' ? fmtUSD(v) : share.toFixed(1) + '%') +
+          '<span class="ml-1.5 text-xs font-normal text-slate-500">' + share.toFixed(1) + '%</span>' +
+        '</span>';
+      row.onclick = () => toggleSegment(dim, k);
+      box.appendChild(row);
+    });
+  }
+
+  /* ---------------- funnel ---------------- */
+  function renderFunnel(rows) {
+    const t = totals(rows);
+    $('funnelScopeBadge').textContent = periodLabel() + (filterActive() ? ' · filtered' : ' · company');
+    $('funnelLeadsCount').textContent = num.format(t.leads) + ' leads';
+    $('funnelLeadsValue').textContent = compact(t.leadValue);
+    $('funnelLeadsValue').title = money(t.leadValue);
+
+    $('funnelQuotesCount').textContent = num.format(t.quoted) + ' quotes';
+    $('funnelQuotesValue').textContent = compact(t.quoteValue);
+    $('funnelQuotesValue').title = money(t.quoteValue);
+    const lostCount = t.quoted - t.wins;
+    $('funnelQuotesSub').textContent = num.format(lostCount) + ' never converted · ' + compact(t.quoteValue - t.wonValue) + ' lost';
+
+    $('funnelSalesCount').textContent = num.format(t.wins) + ' won';
+    $('funnelSalesValue').textContent = compact(t.wonValue);
+    $('funnelSalesValue').title = money(t.wonValue);
+    $('funnelSalesSub').textContent = t.wins ? 'Avg deal ' + compact(t.wonValue / t.wins) : 'No closed deals in scope';
+
+    $('metricLeadToQuote').textContent = pctStr(t.quoted, t.leads) + ' of leads';
+    $('metricQuoteToClose').textContent = pctStr(t.wins, t.quoted) + ' of quotes';
+    $('metricFunnelYield').textContent = pctStr(t.wonValue, t.leadValue) + ' of pipeline';
+  }
+
+  /* ---------------- table ---------------- */
+  const TABS = [
+    ['all', 'All records'], ['open', 'Unquoted leads'], ['lost', 'Lost quotes'], ['won', 'Won deals']
+  ];
+  function renderTabs() {
+    const box = $('tableTabs');
+    box.innerHTML = '';
+    TABS.forEach(([key, label]) => {
+      const active = state.tab === key;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', active ? 'true' : 'false');
+      b.className = 'seg-btn ring-focus px-3 rounded-lg text-xs font-bold border transition ' + (active
+        ? 'bg-slate-100 text-slate-900 border-slate-100'
+        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white');
+      b.textContent = label;
+      b.onclick = () => { state.tab = key; state.page = 1; renderAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  function tableRows() {
+    let rows = subset();
+    if (state.tab !== 'all') rows = rows.filter((r) => r.stage === state.tab);
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      rows = rows.filter((r) => r.account.toLowerCase().includes(q) || CHANNEL_LABEL[r.channel].toLowerCase().includes(q) || VINTAGE_LABEL[r.vintage].toLowerCase().includes(q) || SECTOR_LABEL[r.sector].toLowerCase().includes(q));
+    }
+    return rows;
+  }
+
+  const COLUMNS = [
+    { key: 'year', label: 'Year', align: 'left', cls: '' },
+    { key: 'account', label: 'Customer', align: 'left', cls: '' },
+    { key: 'vintage', label: 'Vintage', align: 'left', cls: 'hidden sm:table-cell' },
+    { key: 'sector', label: 'Sector', align: 'left', cls: 'hidden lg:table-cell' },
+    { key: 'channel', label: 'Channel', align: 'left', cls: 'hidden md:table-cell' },
+    { key: 'leadValue', label: 'Lead $', align: 'right', cls: 'hidden lg:table-cell' },
+    { key: 'quoteValue', label: 'Quote $', align: 'right', cls: 'hidden md:table-cell' },
+    { key: 'wonValue', label: 'Won $', align: 'right', cls: '' },
+    { key: 'stage', label: 'Stage', align: 'right', cls: '' }
+  ];
+
+  function renderTable() {
+    const rows = tableRows();
+    const head = $('tableHead');
+    head.innerHTML = '';
+    const body = $('tableBody');
+    body.innerHTML = '';
+
+    if (state.groupBy) {
+      head.innerHTML = '<tr>' +
+        '<th class="text-left py-2 px-1.5">' + (state.groupBy === 'account' ? 'Customer' : state.groupBy === 'year' ? 'Year' : 'Group') + '</th>' +
+        '<th class="text-right py-2 px-1.5">Won $</th>' +
+        '<th class="text-right py-2 px-1.5">Share</th>' +
+        '<th class="text-right py-2 px-1.5 hidden sm:table-cell">Quotes</th>' +
+        '<th class="text-right py-2 px-1.5 hidden sm:table-cell">Win rate</th>' +
+        '<th class="text-right py-2 px-1.5 hidden md:table-cell">Avg deal</th></tr>';
+      renderGrouped(body, rows);
+      return;
+    }
+
+    const tr = document.createElement('tr');
+    COLUMNS.forEach((c) => {
+      const th = document.createElement('th');
+      th.className = c.cls + ' py-2 px-1.5 ' + (c.align === 'right' ? 'text-right' : 'text-left') + ' whitespace-nowrap';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ring-focus inline-flex items-center gap-1 hover:text-white transition ' + (state.sortKey === c.key ? 'text-emerald-400' : 'text-slate-400');
+      btn.innerHTML = c.label + (state.sortKey === c.key ? (state.sortDir === 'asc' ? ' ▲' : ' ▼') : '');
+      btn.onclick = () => {
+        if (state.sortKey === c.key) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+        else { state.sortKey = c.key; state.sortDir = c.key === 'account' || c.key === 'stage' ? 'asc' : 'desc'; }
+        state.page = 1; renderAll();
+      };
+      th.appendChild(btn);
+      tr.appendChild(th);
+    });
+    head.appendChild(tr);
+
+    const sortKey = state.sortKey;
+    const dir = state.sortDir === 'asc' ? 1 : -1;
+    rows.sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+      return String(av).localeCompare(String(bv)) * dir;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    state.page = Math.min(state.page, totalPages);
+    const start = (state.page - 1) * PAGE_SIZE;
+    const pageRows = rows.slice(start, start + PAGE_SIZE);
+
+    if (!pageRows.length) {
+      const tr2 = document.createElement('tr');
+      tr2.innerHTML = '<td colspan="9" class="py-8 text-center text-slate-500">No records match the current filters.</td>';
+      body.appendChild(tr2);
+    }
+
+    const cards = $('ledgerCards');
+    cards.innerHTML = '';
+    if (!pageRows.length) {
+      cards.innerHTML = '<p class="py-6 text-center text-sm text-slate-500">No records match the current filters.</p>';
+    }
+    pageRows.forEach((r) => {
+      const tr2 = document.createElement('tr');
+      tr2.className = 'hover:bg-slate-900/60 transition';
+      const stageBadge = r.stage === 'won'
+        ? '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">Won</span>'
+        : r.stage === 'lost'
+          ? '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/25">Lost</span>'
+          : '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600">Lead</span>';
+      tr2.innerHTML =
+        '<td class="py-2 px-1.5 num text-slate-400">' + r.year + '</td>' +
+        '<td class="py-2 px-1.5 text-slate-200"><span class="block truncate max-w-[150px] sm:max-w-[220px]" title="' + r.account + '">' + r.account + '</span></td>' +
+        '<td class="py-2 px-1.5 text-slate-400 hidden sm:table-cell">' + VINTAGE_LABEL[r.vintage] + '</td>' +
+        '<td class="py-2 px-1.5 text-slate-400 hidden lg:table-cell">' + SECTOR_LABEL[r.sector] + '</td>' +
+        '<td class="py-2 px-1.5 text-slate-400 hidden md:table-cell">' + CHANNEL_LABEL[r.channel] + '</td>' +
+        '<td class="py-2 px-1.5 num text-slate-400 text-right hidden lg:table-cell">' + fmtUSD(r.leadValue) + '</td>' +
+        '<td class="py-2 px-1.5 num text-slate-300 text-right hidden md:table-cell">' + (r.quoteValue ? fmtUSD(r.quoteValue) : '—') + '</td>' +
+        '<td class="py-2 px-1.5 num font-bold text-right ' + (r.wonValue ? 'text-emerald-300' : 'text-slate-600') + '">' + (r.wonValue ? fmtUSD(r.wonValue) : '—') + '</td>' +
+        '<td class="py-2 px-1.5 text-right">' + stageBadge + '</td>';
+      body.appendChild(tr2);
+
+      const card = document.createElement('div');
+      card.className = 'rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2';
+      card.innerHTML =
+        '<div class="flex items-baseline justify-between gap-2">' +
+          '<span class="text-[13px] font-semibold text-slate-100 truncate">' + r.account + '</span>' +
+          '<span class="num text-sm font-bold shrink-0 ' + (r.wonValue ? 'text-emerald-300' : 'text-slate-500') + '">' + (r.wonValue ? fmtUSD(r.wonValue) : '—') + '</span>' +
+        '</div>' +
+        '<div class="mt-1 flex items-center justify-between gap-2 text-xs text-slate-400">' +
+          '<span class="truncate">' + r.year + ' · ' + VINTAGE_LABEL[r.vintage] + ' · ' + CHANNEL_LABEL[r.channel] + '</span>' +
+          stageBadge +
+        '</div>';
+      cards.appendChild(card);
+    });
+
+    $('tableSummary').textContent = rows.length
+      ? num.format(start + 1) + '–' + num.format(Math.min(start + PAGE_SIZE, rows.length)) + ' of ' + num.format(rows.length) + ' records'
+      : '0 records';
+    $('pageLabel').textContent = state.page + ' / ' + totalPages;
+    $('pagePrev').disabled = state.page <= 1;
+    $('pageNext').disabled = state.page >= totalPages;
+  }
+
+  function renderGrouped(body, rows) {
+    const dim = state.groupBy;
+    $('ledgerCards').innerHTML = '';
+    const labelFor = (k) => {
+      if (dim === 'vintage') return VINTAGE_LABEL[k] || k;
+      if (dim === 'cls') return SECTOR_LABEL[k] || k;
+      if (dim === 'channel') return CHANNEL_LABEL[k] || k;
+      if (dim === 'year') return 'FY' + k;
+      return k;
+    };
+    const groups = groupSum(rows, (r) => (dim === 'cls' ? r.sector : r[dim]));
+    groups.sort((a, b) => b.wonValue - a.wonValue);
+    const totalWon = groups.reduce((a, g) => a + g.wonValue, 0);
+
+    groups.forEach((g) => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-900/60 transition cursor-pointer';
+      tr.innerHTML =
+        '<td class="py-2 px-1.5 text-slate-200"><span class="block truncate max-w-[160px] sm:max-w-[240px]" title="' + labelFor(g.key) + '">' + labelFor(g.key) + '</span></td>' +
+        '<td class="py-2 px-1.5 num font-bold text-right text-emerald-300">' + fmtUSD(g.wonValue) + '</td>' +
+        '<td class="py-2 px-1.5 num text-right text-slate-300">' + pctStr(g.wonValue, totalWon) + '</td>' +
+        '<td class="py-2 px-1.5 num text-right text-slate-400 hidden sm:table-cell">' + num.format(g.quoted) + '</td>' +
+        '<td class="py-2 px-1.5 num text-right text-slate-400 hidden sm:table-cell">' + pctStr(g.wins, g.quoted) + '</td>' +
+        '<td class="py-2 px-1.5 num text-right text-slate-400 hidden md:table-cell">' + (g.wins ? compact(g.wonValue / g.wins) : '—') + '</td>';
+      tr.onclick = () => {
+        if (dim === 'year') { state.year = state.year === g.key ? 'ALL' : g.key; }
+        else if (dim === 'vintage') state.vintage = state.vintage === g.key ? null : g.key;
+        else if (dim === 'cls') state.sector = state.sector === g.key ? null : g.key;
+        else if (dim === 'channel') state.channel = state.channel === g.key ? null : g.key;
+        else { state.search = g.key; $('tableSearch').value = g.key; }
+        state.page = 1;
+        renderAll();
+      };
+      body.appendChild(tr);
+
+      const card = document.createElement('div');
+      card.className = 'rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2 cursor-pointer';
+      card.innerHTML =
+        '<div class="flex items-baseline justify-between gap-2">' +
+          '<span class="text-[13px] font-semibold text-slate-100 truncate">' + labelFor(g.key) + '</span>' +
+          '<span class="num text-sm font-bold text-emerald-300 shrink-0">' + fmtUSD(g.wonValue) + '</span>' +
+        '</div>' +
+        '<div class="mt-1 flex items-center justify-between gap-2 text-xs text-slate-400">' +
+          '<span>' + pctStr(g.wonValue, totalWon) + ' share</span>' +
+          '<span>' + num.format(g.quoted) + ' quotes · ' + pctStr(g.wins, g.quoted) + ' win</span>' +
+        '</div>';
+      card.onclick = tr.onclick;
+      $('ledgerCards').appendChild(card);
+    });
+
+    $('tableSummary').textContent = groups.length + ' groups · ' + num.format(rows.length) + ' records';
+    $('pageLabel').textContent = 'grouped';
+    $('pagePrev').disabled = true;
+    $('pageNext').disabled = true;
+  }
+
+  function renderTopAccounts() {
+    const rows = subset().filter((r) => r.stage === 'won');
+    const m = new Map();
+    rows.forEach((r) => {
+      let a = m.get(r.account);
+      if (!a) { a = { name: r.account, won: 0, vintage: r.vintage, channel: r.channel, sector: r.sector, deals: 0 }; m.set(r.account, a); }
+      a.won += r.wonValue; a.deals++;
+    });
+    const top = Array.from(m.values()).sort((a, b) => b.won - a.won).slice(0, 5);
+    const max = top.length ? top[0].won : 1;
+    const box = $('topAccounts');
+    box.innerHTML = '';
+    if (!top.length) {
+      box.innerHTML = '<p class="text-xs text-slate-500">No won revenue in this scope.</p>';
+      return;
+    }
+    top.forEach((a, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ring-focus w-full text-left group';
+      b.innerHTML =
+        '<div class="flex items-baseline justify-between gap-2 text-xs">' +
+          '<span class="text-slate-300 truncate"><span class="text-slate-500 num mr-1">' + (i + 1) + '</span>' + a.name + '</span>' +
+          '<span class="num font-bold text-white shrink-0">' + compact(a.won) + '</span>' +
+        '</div>' +
+        '<div class="mt-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all" style="width:' + Math.max(4, (a.won / max) * 100) + '%"></span></div>' +
+        '<div class="mt-0.5 text-xs text-slate-500">' + VINTAGE_LABEL[a.vintage] + ' · ' + SECTOR_LABEL[a.sector] + ' · ' + CHANNEL_LABEL[a.channel] + ' · ' + a.deals + ' deal' + (a.deals > 1 ? 's' : '') + '</div>';
+      b.onclick = () => { state.search = a.name; $('tableSearch').value = a.name; state.page = 1; renderAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------------- state sync ---------------- */
+  function applyMultiplier(value, opts) {
+    opts = opts || {};
+    const n = clamp(parseFloat(value), 0.5, 3);
+    if (!isFinite(n)) return;
+    state.multiplier = Math.round(n * 100) / 100;
+    if (opts.writeInput !== false) $('targetMultiplier').value = state.multiplier.toFixed(2);
+    $('multiplierRange').value = String(state.multiplier);
+    $('multiplierLabel').textContent = state.multiplier.toFixed(2) + 'x';
+    document.querySelectorAll('.preset').forEach((b) => {
+      const on = Number(b.dataset.preset) === state.multiplier;
+      b.className = 'preset seg-btn px-2.5 rounded-lg text-xs font-semibold border transition ' + (on
+        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+        : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-emerald-500/40 hover:text-white');
+    });
+    if (!opts.skipRender) renderAll();
+  }
+
+  function setMode(mode, skipRender) {
+    state.mode = mode;
+    $('btnModeAbs').setAttribute('aria-pressed', mode === 'absolute' ? 'true' : 'false');
+    $('btnModePct').setAttribute('aria-pressed', mode === 'percentage' ? 'true' : 'false');
+    $('btnModeAbs').className = 'seg-btn ring-focus px-3 rounded-lg transition ' + (mode === 'absolute' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white font-medium');
+    $('btnModePct').className = 'seg-btn ring-focus px-3 rounded-lg transition ' + (mode === 'percentage' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white font-medium');
+    if (!skipRender) renderAll();
+    writeHash();
+  }
+
+  function writeHash() {
+    const p = new URLSearchParams();
+    if (state.year !== 'ALL') p.set('year', state.year);
+    if (state.multiplier !== 1.25) p.set('m', String(state.multiplier));
+    if (state.vintage) p.set('v', state.vintage);
+    if (state.sector) p.set('s', state.sector);
+    if (state.channel) p.set('ch', state.channel);
+    if (state.mode !== 'absolute') p.set('mode', state.mode);
+    if (state.tab !== 'all') p.set('tab', state.tab);
+    if (state.groupBy) p.set('g', state.groupBy);
+    if (state.search) p.set('q', state.search);
+    if (state.page > 1) p.set('p', String(state.page));
+    const hash = p.toString();
+    try { history.replaceState(null, '', hash ? '#' + hash : location.pathname + location.search); } catch (e) { /* file:// in some browsers */ }
+  }
+
+  function readHash() {
+    const raw = location.hash.replace(/^#/, '');
+    if (!raw) return;
+    const p = new URLSearchParams(raw);
+    const y = p.get('year');
+    if (y === 'ALL') state.year = 'ALL';
+    else if (y && YEAR_INDEX.has(Number(y))) state.year = Number(y);
+    const m = parseFloat(p.get('m'));
+    if (isFinite(m)) state.multiplier = clamp(Math.round(m * 100) / 100, 0.5, 3);
+    if (VINTAGE.includes(p.get('v'))) state.vintage = p.get('v');
+    if (SECTORS.includes(p.get('s'))) state.sector = p.get('s');
+    if (CHANNELS.includes(p.get('ch'))) state.channel = p.get('ch');
+    if (p.get('mode') === 'percentage') state.mode = 'percentage';
+    if (TABS.some((t) => t[0] === p.get('tab'))) state.tab = p.get('tab');
+    if (['vintage', 'cls', 'channel', 'year', 'account'].includes(p.get('g'))) state.groupBy = p.get('g');
+    if (p.get('q')) state.search = p.get('q').slice(0, 60);
+    const pg = parseInt(p.get('p'), 10);
+    if (pg > 0) state.page = pg;
+  }
+
+  /* ---------------- orchestration ---------------- */
+  function renderAll(scrollPills) {
+    const rows = subset();
+    renderChips();
+    renderYearPills(scrollPills);
+    renderKPIs(rows);
+    renderTrend();
+    renderBreakdowns();
+    renderFunnel(rows);
+    renderTabs();
+    renderTable();
+    renderTopAccounts();
+    if (document.activeElement !== $('tableSearch')) $('tableSearch').value = state.search;
+    $('groupBy').value = state.groupBy;
+    if (['wonValue', 'quoteValue', 'year', 'account'].includes(state.sortKey)) $('mobileSort').value = state.sortKey;
+    writeHash();
+  }
+
+  /* ---------------- events ---------------- */
+  $('targetMultiplier').addEventListener('input', (e) => applyMultiplier(e.target.value, { writeInput: false }));
+  $('targetMultiplier').addEventListener('blur', (e) => { e.target.value = state.multiplier.toFixed(2); });
+  $('multiplierRange').addEventListener('input', (e) => applyMultiplier(e.target.value));
+  $('btnMultUp').onclick = () => applyMultiplier(state.multiplier + 0.05);
+  $('btnMultDown').onclick = () => applyMultiplier(state.multiplier - 0.05);
+  document.querySelectorAll('.preset').forEach((b) => { b.onclick = () => applyMultiplier(b.dataset.preset); });
+  $('btnModeAbs').onclick = () => setMode('absolute');
+  $('btnModePct').onclick = () => setMode('percentage');
+
+  $('tableSearch').addEventListener('input', (e) => {
+    state.search = e.target.value.trim();
+    state.page = 1;
+    renderChips();
+    renderTable();
+    renderTopAccounts();
+    writeHash();
+  });
+  $('tableSearch').addEventListener('blur', (e) => { e.target.value = state.search; });
+  $('groupBy').addEventListener('change', (e) => {
+    state.groupBy = e.target.value;
+    state.page = 1;
+    renderAll();
+  });
+  $('mobileSort').addEventListener('change', (e) => {
+    state.sortKey = e.target.value;
+    state.sortDir = state.sortKey === 'account' ? 'asc' : 'desc';
+    state.page = 1;
+    renderTable();
+    writeHash();
+  });
+  $('pagePrev').onclick = () => { state.page = Math.max(1, state.page - 1); renderTable(); writeHash(); };
+  $('pageNext').onclick = () => { state.page += 1; renderTable(); writeHash(); };
+
+  $('btnReset').onclick = () => {
+    state.year = 'ALL'; state.multiplier = 1.25; state.mode = 'absolute';
+    state.vintage = state.sector = state.channel = null;
+    state.tab = 'all'; state.groupBy = ''; state.search = ''; state.page = 1;
+    $('tableSearch').value = '';
+    applyMultiplier(1.25);
+    setMode('absolute');
+  };
+
+  $('btnShare').onclick = async () => {
+    const btn = $('btnShare');
+    const url = location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = 'Copied ✓';
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); btn.textContent = 'Copied ✓'; } catch (err) { btn.textContent = 'Copy failed'; }
+      ta.remove();
+    }
+    setTimeout(() => { btn.textContent = 'Copy link'; }, 1600);
+  };
+
+  /* ---------------- boot ---------------- */
+  readHash();
+  applyMultiplier(state.multiplier, { skipRender: true });
+  setMode(state.mode, true);
+  renderAll();
+
+  // expose a tiny read-only probe for smoke tests
+  window.__salesEngine = { records: records, plans: YEAR_PLANS, state: state, targets: targetsFor, verify: verifyData, issues: DATA_ISSUES };
+})();
+</script>
+</body>
+</html>
